@@ -12,7 +12,7 @@ namespace PingPong.Common
         public int Rows { get; private set; }
         public int Cols { get; private set; }
         public int NutWidth { get; private set; }
-        public int Speed { get; private set; }
+        public int Speed { get; set; }
 
         public Game(GameLevel level)
         {
@@ -22,6 +22,7 @@ namespace PingPong.Common
                 {GameLevel.Intermediate, () => Init(GameLevel.Intermediate, 7, 25, 15, 6, FoodNumber.Normal)},
                 {GameLevel.Advanced, () => Init(GameLevel.Advanced, 7, 30, 15, 8, FoodNumber.Few)}
             };
+
             levelInitFuncDic[level]();
         }
 
