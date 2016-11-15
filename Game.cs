@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
-using PingPong.Enums;
 
-namespace PingPong.Common
+namespace Pong
 {
     public class Game
     {
@@ -18,9 +16,9 @@ namespace PingPong.Common
         {
             var levelInitFuncDic = new Dictionary<GameLevel, Action>
             {
-                {GameLevel.Beginner, () => Init(GameLevel.Beginner, 5, 17, 20, 2, FoodNumber.Much)},
-                {GameLevel.Intermediate, () => Init(GameLevel.Intermediate, 7, 25, 15, 6, FoodNumber.Normal)},
-                {GameLevel.Advanced, () => Init(GameLevel.Advanced, 7, 30, 15, 8, FoodNumber.Few)}
+                {GameLevel.Beginner, () => Initialize(GameLevel.Beginner, 5, 17, 20, 2, FoodNumber.Much)},
+                {GameLevel.Intermediate, () => Initialize(GameLevel.Intermediate, 7, 25, 15, 6, FoodNumber.Normal)},
+                {GameLevel.Advanced, () => Initialize(GameLevel.Advanced, 7, 30, 15, 8, FoodNumber.Few)}
             };
 
             levelInitFuncDic[level]();
@@ -28,10 +26,10 @@ namespace PingPong.Common
 
         public Game(int row, int cols, int nutWidth, int speed, FoodNumber foods)
         {
-            Init(GameLevel.Custom, row, cols, nutWidth, speed, foods);
+            Initialize(GameLevel.Custom, row, cols, nutWidth, speed, foods);
         }
 
-        protected void Init(GameLevel level, int row, int cols, int nutWidth, int speed, FoodNumber foods)
+        protected void Initialize(GameLevel level, int row, int cols, int nutWidth, int speed, FoodNumber foods)
         {
             Level = level;
             Rows = row;
@@ -39,6 +37,12 @@ namespace PingPong.Common
             NutWidth = nutWidth;
             Speed = speed;
             Foods = foods;
+        }
+
+        public FoodType RandomFood()
+        {
+            var rnd = new Random();
+            return rnd.Next((int)Foods) == 1 ? (FoodType)rnd.Next(0, 6) : FoodType.Null;
         }
     }
 }

@@ -8,8 +8,8 @@
     <ProjectGuid>{DDBC263E-92DC-43E4-B3EC-57CC561CBD00}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PingPong</RootNamespace>
-    <AssemblyName>pingpong</AssemblyName>
+    <RootNamespace>Pong</RootNamespace>
+    <AssemblyName>pong</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>
@@ -49,12 +49,12 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Enums\Enums.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="Game.cs" />
-    <Compile Include="Forms\Main.cs">
+    <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\Main.Designer.cs">
+    <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
@@ -62,7 +62,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Forms\Main.resx">
+    <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">

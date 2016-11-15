@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using PingPong.Enums;
 
-namespace PingPong.Controls
+namespace Pong.Controls
 {
     internal sealed class Nut : PictureBox
     {
-        public Nut(int left, int top, int width, NutType type, FoodType food = FoodType.Null, int index = 0)
+        public Nut(int left, int top, int width, NutType type = NutType.Wall, FoodType food = FoodType.Null, int index = 0)
         {
             Left = left;
             Top = top;
@@ -54,7 +53,7 @@ namespace PingPong.Controls
                 {NutType.Earth, Image.FromFile(Program.AssetsPath + "\\pic\\square2.png")},
                 {NutType.Ball, Image.FromFile(Program.AssetsPath + "\\pic\\square1.png")},
                 {NutType.Nut, Image.FromFile(Program.AssetsPath + "\\pic\\square3.png")},
-                {NutType.Rocket, Image.FromFile(Program.AssetsPath + "\\pic\\square3.png")}
+                {NutType.Paddle, Image.FromFile(Program.AssetsPath + "\\pic\\square3.png")}
             };
             return wallImageFuncDic[type];
         }

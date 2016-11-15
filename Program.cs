@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
-using PingPong.Forms;
 
-namespace PingPong
+namespace Pong
 {
     internal static class Program
     {

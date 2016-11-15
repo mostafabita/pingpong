@@ -1,4 +1,4 @@
-namespace PingPong.Forms
+namespace Pong
 {
     partial class Main
     {
@@ -39,12 +39,13 @@ namespace PingPong.Forms
             // 
             // menuStrip1
             // 
+            this.menuStrip1.Dock = System.Windows.Forms.DockStyle.None;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.newGameToolStripMenuItem,
             this.changeLevelToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Location = new System.Drawing.Point(7, 5);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(325, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(175, 24);
             this.menuStrip1.TabIndex = 13;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -92,15 +93,12 @@ namespace PingPong.Forms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(325, 186);
             this.Controls.Add(this.menuStrip1);
-            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(178)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Tennis";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainFrm_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.PlayForm_KeyUp);
             this.menuStrip1.ResumeLayout(false);

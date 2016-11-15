@@ -1,6 +1,6 @@
-﻿namespace PingPong.Enums
+﻿namespace Pong
 {
-    internal enum Direction
+    public enum Direction
     {
         N,
         S,
@@ -10,16 +10,16 @@
         SW
     }
 
-    internal enum NutType
+    public enum NutType
     {
         Ball,
         Earth,
         Nut,
-        Rocket,
+        Paddle,
         Wall
     }
 
-    internal enum FoodType
+    public enum FoodType
     {
         Stick,
         Death,
@@ -28,7 +28,6 @@
         Small,
         SpeedDown,
         SpeedUp,
-        Image,
         Null
     }
 

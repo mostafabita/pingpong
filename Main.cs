@@ -1,27 +1,23 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using PingPong.Common;
-using PingPong.Controls;
-using PingPong.Enums;
-using static System.Windows.Forms.Application;
+using Pong.Controls;
 using Timer = System.Windows.Forms.Timer;
 
-namespace PingPong.Forms
+namespace Pong
 {
     public partial class Main : Form
     {
         private const short Gap = 3;
-        private const short Lives = 3;
+        private const short Lives = 5;
         private const short NutsToPanelRatio = 4;
-        private const short RocketFragments = 5;
+        private const short PaddleFragments = 5;
         private const short ScoreStep = 5;
         private const short MovementStep = 1;
-        private short _ballIndex;
-        private short _rocketIndex;
-        private short _currentRocketFrag;
+        private int _ballIndex;
+        private int _paddleIndex;
+        private short _currentPaddleFrag;
         private short _score;
         private short _movementStep;
         private short _lives;
@@ -30,57 +26,55 @@ namespace PingPong.Forms
         private bool _moveRight;
         private bool _ballStart;
         private bool _ballStick;
-        private readonly Random _rnd;
-        private readonly Timer _ballTimer;
-        private readonly Timer _movementTimer;
-        private readonly Panel _gamePanel;
-        private readonly Control.ControlCollection _controls;
-        private Direction _ballDirection;
+        private Direction _ballDirection = Direction.N;
         private Keys _previousKey;
         private Game _game;
+        private Panel _gamePanel;
+        private Control.ControlCollection _controls;
+        private Timer _ballTimer;
+        private Timer _movementTimer;
 
         public Main()
         {
             InitializeComponent();
+            InitializeGame();
+        }
 
-            _ballDirection = Direction.N;
-            _rnd = new Random();
-            _game = new Game(GameLevel.Beginner);
-            _ballTimer = new Timer { Interval = 40 };
-            _ballTimer.Tick += _ballTimer_Tick;
-            _movementTimer = new Timer { Interval = 40 };
-            _movementTimer.Tick += _movementTimer_Tick;
+        public void InitializeGame(GameLevel gameLevel = GameLevel.Beginner)
+        {
+            _game = new Game(gameLevel);
             _gamePanel = new Panel
             {
+                Name = "gamePanel",
                 BorderStyle = BorderStyle.FixedSingle,
-                Location = new Point(12, 97),
+                Location = new Point(_game.NutWidth, _game.NutWidth * 2),
                 Size = new Size((_game.Cols + 2) * _game.NutWidth + Gap, (_game.Rows * NutsToPanelRatio + 2) * _game.NutWidth + Gap),
                 BackColor = Color.White
             };
             _controls = _gamePanel.Controls;
+            _ballTimer = new Timer { Interval = 40 };
+            _movementTimer = new Timer { Interval = 40 };
+            _ballTimer.Tick += _ballTimer_Tick;
+            _movementTimer.Tick += _movementTimer_Tick;
+            Controls.RemoveByKey("gamePanel");
             Controls.Add(_gamePanel);
             ResizeForm();
 
-            InitializeGame();
-        }
-        
-        public void InitializeGame()
-        {
             _gameStart = true;
             _movementStep = MovementStep;
             _lives = Lives;
-            _currentRocketFrag = RocketFragments;
+            _currentPaddleFrag = PaddleFragments;
             _ballTimer.Interval = 200 / _game.Speed;
             Log("Game Start");
 
-            _controls?.Clear();
+            _controls.Clear();
 
             #region Vertical Wall
 
             for (int i = 0, j = (_game.Cols + 1) * _game.NutWidth; i < _game.Rows * NutsToPanelRatio + 2; i++)
             {
-                _controls.Add(new Nut(0, i * _game.NutWidth, _game.NutWidth, NutType.Wall));
-                _controls.Add(new Nut(j, i * _game.NutWidth, _game.NutWidth, NutType.Wall));
+                _controls.Add(new Nut(0, i * _game.NutWidth, _game.NutWidth));
+                _controls.Add(new Nut(j, i * _game.NutWidth, _game.NutWidth));
             }
 
             #endregion
@@ -100,7 +94,7 @@ namespace PingPong.Forms
             for (var i = 1; i <= _game.Rows; i++)
                 for (var j = 1; j <= _game.Cols; j++)
                 {
-                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, DetermineFoodType());
+                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, _game.RandomFood());
                     nut.FoodHit += Nut_FoodHit;
                     _controls.Add(nut);
                 }
@@ -109,37 +103,19 @@ namespace PingPong.Forms
 
             #region Ball
 
-            _ballIndex = (short) _controls.Count;
+            _ballIndex = _controls.Count;
             _controls.Add(new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth,
-                _game.NutWidth, NutType.Ball, FoodType.Null, _currentRocketFrag / 2));
+                _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2));
 
             #endregion
 
-            #region Rocket
+            #region Paddle
 
-            _rocketIndex = (short) _controls.Count;
-            for (int i = 0, j = _controls[_ballIndex].Left - _currentRocketFrag / 2 * _game.NutWidth;
-                i < _currentRocketFrag;
-                i++, j += _game.NutWidth)
-                _controls.Add(new Nut(j, _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth, NutType.Rocket, FoodType.Null, i));
+            _paddleIndex = _ballIndex + 1;
+            for (int i = 0, j = _controls[_ballIndex].Left - _currentPaddleFrag / 2 * _game.NutWidth; i < _currentPaddleFrag; i++, j += _game.NutWidth)
+                _controls.Add(new Nut(j, _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth, NutType.Paddle, FoodType.Null, i));
 
             #endregion
-        }
-
-        private FoodType DetermineFoodType()
-        {
-            return _rnd.Next((int)_game.Foods) == 1 ? (FoodType)_rnd.Next(0, 6) : FoodType.Null;
-        }
-
-        private void AlignRocket()
-        {
-            _controls[_ballIndex].Location = new Point((_game.Cols / 2 + 1) * _game.NutWidth,
-                (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
-            for (int i = 0, j = _controls[_ballIndex].Left - _currentRocketFrag / 2 * _game.NutWidth;
-                i < _currentRocketFrag;
-                i++, j += _game.NutWidth)
-                _controls[_rocketIndex + i].Location = new Point(j, _gamePanel.Height - 2 * _game.NutWidth);
-            ((Nut)_controls[_ballIndex]).Index = _currentRocketFrag / 2;
         }
 
         private void Nut_FoodHit(object sender)
@@ -168,7 +144,7 @@ namespace PingPong.Forms
                         nut.Top += _game.NutWidth;
                         break;
                     default:
-                        if (((Nut)_controls[dirResult]).Type == NutType.Rocket)
+                        if (((Nut)_controls[dirResult]).Type == NutType.Paddle)
                         {
                             nut.Visible = false;
                             timer.Stop();
@@ -228,10 +204,10 @@ namespace PingPong.Forms
                             var tempNut = (Nut)_controls[dirResult];
                             switch (tempNut.Type)
                             {
-                                case NutType.Rocket:
+                                case NutType.Paddle:
                                     if (_ballStick)
                                     {
-                                        StickBallToRocket();
+                                        StickBallToPaddle();
                                         return;
                                     }
                                     if (tempNut.Index > ((Nut)_controls[_ballIndex]).Index)
@@ -409,9 +385,9 @@ namespace PingPong.Forms
                             else if (vResult != -1 && hResult != -1)
                             {
                                 if (_ballStick)
-                                    if (((Nut)_controls[vResult]).Type == NutType.Rocket)
+                                    if (((Nut)_controls[vResult]).Type == NutType.Paddle)
                                     {
-                                        StickBallToRocket();
+                                        StickBallToPaddle();
                                         return;
                                     }
                                 VisibilityScroring(hResult);
@@ -421,9 +397,9 @@ namespace PingPong.Forms
                             else if (vResult != -1 && hResult == -1)
                             {
                                 if (_ballStick)
-                                    if (((Nut)_controls[vResult]).Type == NutType.Rocket)
+                                    if (((Nut)_controls[vResult]).Type == NutType.Paddle)
                                     {
-                                        StickBallToRocket();
+                                        StickBallToPaddle();
                                         return;
                                     }
                                 VisibilityScroring(vResult);
@@ -474,9 +450,9 @@ namespace PingPong.Forms
                             else if (vResult != -1 && hResult != -1)
                             {
                                 if (_ballStick)
-                                    if (((Nut)_controls[vResult]).Type == NutType.Rocket)
+                                    if (((Nut)_controls[vResult]).Type == NutType.Paddle)
                                     {
-                                        StickBallToRocket();
+                                        StickBallToPaddle();
                                         return;
                                     }
                                 VisibilityScroring(hResult);
@@ -486,9 +462,9 @@ namespace PingPong.Forms
                             else if (vResult != -1 && hResult == -1)
                             {
                                 if (_ballStick)
-                                    if (((Nut)_controls[vResult]).Type == NutType.Rocket)
+                                    if (((Nut)_controls[vResult]).Type == NutType.Paddle)
                                     {
-                                        StickBallToRocket();
+                                        StickBallToPaddle();
                                         return;
                                     }
                                 VisibilityScroring(vResult);
@@ -510,7 +486,7 @@ namespace PingPong.Forms
 
         private void _movementTimer_Tick(object sender, EventArgs e)
         {
-            MoveRocket();
+            MovePaddle();
         }
 
         private void Award(FoodType foodType)
@@ -521,16 +497,16 @@ namespace PingPong.Forms
 
                     #region Big
 
-                    Log("Rocket Growed ...");
-                    if (_currentRocketFrag < _game.Cols - 2)
+                    Log("Paddle Growed ...");
+                    if (_currentPaddleFrag < _game.Cols - 2)
                     {
                         _controls.Add(
-                            new Nut(_controls[_rocketIndex + _currentRocketFrag - 1].Left + _game.NutWidth,
+                            new Nut(_controls[_paddleIndex + _currentPaddleFrag - 1].Left + _game.NutWidth,
                                 _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth,
-                                NutType.Rocket, FoodType.Null, _currentRocketFrag));
-                        if (_controls[_rocketIndex + _currentRocketFrag++ - 1].Left + _game.NutWidth * 2 >
+                                NutType.Paddle, FoodType.Null, _currentPaddleFrag));
+                        if (_controls[_paddleIndex + _currentPaddleFrag++ - 1].Left + _game.NutWidth * 2 >
                             _gamePanel.Width - _game.NutWidth)
-                            for (var i = _rocketIndex; i < _rocketIndex + _currentRocketFrag; i++)
+                            for (var i = _paddleIndex; i < _paddleIndex + _currentPaddleFrag; i++)
                                 _controls[i].Left -= _game.NutWidth;
                     }
                     break;
@@ -541,14 +517,14 @@ namespace PingPong.Forms
 
                     #region Small
 
-                    Log("Rocket Shrinked ...");
-                    if (_currentRocketFrag == 1)
+                    Log("Paddle Shrinked ...");
+                    if (_currentPaddleFrag == 1)
                     {
                         _lives = 0;
                         GameOver();
                     }
                     else
-                        _controls[_ballIndex + _currentRocketFrag--].Dispose();
+                        _controls[_ballIndex + _currentPaddleFrag--].Dispose();
                     break;
 
                 #endregion
@@ -607,24 +583,24 @@ namespace PingPong.Forms
             }
         }
 
-        private void StickBallToRocket()
+        private void StickBallToPaddle()
         {
             _ballTimer.Stop();
             _ballDirection = Direction.N;
             _ballStart = false;
-            ((Nut)_controls[_ballIndex]).Index = _currentRocketFrag / 2;
+            ((Nut)_controls[_ballIndex]).Index = _currentPaddleFrag / 2;
         }
 
-        private void MoveRocket()
+        private void MovePaddle()
         {
             if (!_gameStart) return;
 
             if (_moveLeft)
             {
                 #region Left
-                if (_controls[_rocketIndex].Left - _game.NutWidth >= _game.NutWidth)
+                if (_controls[_paddleIndex].Left - _game.NutWidth >= _game.NutWidth)
                 {
-                    for (var i = _rocketIndex; i < _rocketIndex + _currentRocketFrag; i++)
+                    for (var i = _paddleIndex; i < _paddleIndex + _currentPaddleFrag; i++)
                         _controls[i].Left -= _game.NutWidth;
                     if (!_ballStart)
                         _controls[_ballIndex].Left -= _game.NutWidth;
@@ -634,10 +610,10 @@ namespace PingPong.Forms
             if (_moveRight)
             {
                 #region Right
-                if (_controls[_rocketIndex + _currentRocketFrag - 1].Left + _game.NutWidth * 2 <=
+                if (_controls[_paddleIndex + _currentPaddleFrag - 1].Left + _game.NutWidth * 2 <=
                     _gamePanel.Width - _game.NutWidth)
                 {
-                    for (var i = _rocketIndex; i < _rocketIndex + _currentRocketFrag; i++)
+                    for (var i = _paddleIndex; i < _paddleIndex + _currentPaddleFrag; i++)
                         _controls[i].Left += _game.NutWidth;
                     if (!_ballStart)
                         _controls[_ballIndex].Left += _game.NutWidth;
@@ -659,7 +635,7 @@ namespace PingPong.Forms
                 _gameStart = !_gameStart;
                 Thread.Sleep(1500);
                 _gameStart = !_gameStart;
-                AlignRocket();
+                RealignPaddle();
 
                 #endregion
             }
@@ -668,9 +644,9 @@ namespace PingPong.Forms
                 #region Game Over
 
                 _gameStart = false;
-                MessageBox.Show("Game Over", "Tennis", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Game Over", "Pong", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 if (
-                    MessageBox.Show("Do you want to restart game ?", "Tennis", MessageBoxButtons.YesNo,
+                    MessageBox.Show("Do you want to restart game ?", "Pong", MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     _lives = Lives;
@@ -706,9 +682,18 @@ namespace PingPong.Forms
             Text = content;
         }
 
+        private void RealignPaddle()
+        {
+            var ball = (Nut)_controls[_ballIndex];
+            ball.Location = new Point((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
+            ball.Index = _currentPaddleFrag / 2;
+            for (int i = 0, j = ball.Left - _currentPaddleFrag / 2 * _game.NutWidth; i < _currentPaddleFrag; i++, j += _game.NutWidth)
+                _controls[_paddleIndex + i].Location = new Point(j, _game.Rows * NutsToPanelRatio * _game.NutWidth);
+        }
+
         private void ResizeForm()
         {
-            Size = new Size(_gamePanel.Width + 33, _gamePanel.Height + 140);
+            Size = new Size(_gamePanel.Width + Gap * 2 + _game.NutWidth * 2, _gamePanel.Height + _game.NutWidth * 4 + Gap * 4);
         }
 
         private void MainFrm_KeyDown(object sender, KeyEventArgs e)
@@ -731,7 +716,7 @@ namespace PingPong.Forms
                     #region Left
 
                     _moveLeft = true;
-                    MoveRocket();
+                    MovePaddle();
                     _movementTimer.Start();
                     break;
 
@@ -741,7 +726,7 @@ namespace PingPong.Forms
 
                     #region Right
                     _moveRight = true;
-                    MoveRocket();
+                    MovePaddle();
                     _movementTimer.Start();
                     break;
 
@@ -790,22 +775,15 @@ namespace PingPong.Forms
             switch (((ToolStripMenuItem)sender).Text)
             {
                 case "Beginner":
-                    ChangeGameLevel(GameLevel.Beginner);
+                    InitializeGame();
                     break;
                 case "Intermediate":
-                    ChangeGameLevel(GameLevel.Intermediate);
+                    InitializeGame(GameLevel.Intermediate);
                     break;
                 case "Advanced":
-                    ChangeGameLevel(GameLevel.Advanced);
+                    InitializeGame(GameLevel.Advanced);
                     break;
             }
-        }
-
-        private void ChangeGameLevel(GameLevel level)
-        {
-            _game = new Game(level);
-            ResizeForm();
-            InitializeGame();
         }
     }
 }

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("PingPong")]
+[assembly: AssemblyTitle("Pong")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("mostafa.bita@gmail.com")]
-[assembly: AssemblyProduct("pingpong")]
+[assembly: AssemblyProduct("pong")]
 [assembly: AssemblyCopyright("Copyright © Mostafa Bita 2009")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
