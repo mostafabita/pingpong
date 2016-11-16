@@ -99,8 +99,6 @@ namespace Pong
             this.MaximizeBox = false;
             this.Name = "Main";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainFrm_KeyDown);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.PlayForm_KeyUp);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);

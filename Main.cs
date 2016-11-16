@@ -22,6 +22,7 @@ namespace Pong
         private int _ballIndex;
         private int _paddleIndex;
         private bool _gameStart;
+        private bool _roundLose;
         private bool _moveLeft;
         private bool _moveRight;
         private bool _ballStart;
@@ -42,6 +43,8 @@ namespace Pong
 
         public void InitializeGame(GameLevel gameLevel = GameLevel.Beginner)
         {
+            KeyDown += Main_KeyDown;
+            KeyUp += Main_KeyUp;
             _game = new Game(gameLevel);
             _gamePanel = new Panel
             {
@@ -126,25 +129,26 @@ namespace Pong
 
         private void FoodHitTimer_Tick(object sender, EventArgs e)
         {
+            if (!_gameStart) return;
             var timer = (Timer)sender;
             var nut = (Nut)timer.Tag;
             timer.Stop();
-            if (_gameStart)
+            nut.Visible = true;
+            nut.Index = -2;
+            if (_roundLose) nut.Visible = false;
+            else
             {
-                nut.Visible = true;
-                nut.Index = -2;
                 var dirResult = SearchPanel(new Point(nut.Left, nut.Top + _game.NutWidth));
                 switch (dirResult)
                 {
                     case -2:
                         nut.Visible = false;
-                        timer.Stop();
                         return;
                     case -1:
                         nut.Top += _game.NutWidth;
                         break;
                     default:
-                        if (((Nut)_controls[dirResult]).Type == NutType.Paddle)
+                        if (((Nut) _controls[dirResult]).Type == NutType.Paddle)
                         {
                             nut.Visible = false;
                             timer.Stop();
@@ -155,16 +159,6 @@ namespace Pong
                         break;
                 }
                 timer.Start();
-            }
-            else
-            {
-                #region Destroy dropped food on heart lose
-                if (!_ballStart)
-                {
-                    nut.Visible = false;
-                    timer.Stop();
-                } 
-                #endregion
             }
         }
 
@@ -636,6 +630,7 @@ namespace Pong
         {
             _ballTimer.Stop();
             _ballStart = _gameStart = false;
+            _roundLose = true;
             _ballDirection = Direction.N;
             if (_hearts-- > 0)
             {
@@ -657,13 +652,16 @@ namespace Pong
 
         private void VisibilityScroring(int index)
         {
-            if (((Nut)_controls[index]).Type == NutType.Nut)
-            {
-                _controls[index].Visible = false;
-                if ((_score += ScoreStep) >= _game.Rows * _game.Cols * ScoreStep) MessageBox.Show("YOU WIN");
-            }
+            if (((Nut)_controls[index]).Type != NutType.Nut) return;
+            _controls[index].Visible = false;
+            if ((_score += ScoreStep) >= _game.Rows * _game.Cols * ScoreStep) MessageBox.Show("YOU WIN");
         }
 
+        /// <summary>
+        /// Search Panel For Control
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns> -1: null (not found), -2: earth, other numbers: nut index</returns>
         private int SearchPanel(Point point)
         {
             for (var i = 0; i < _controls.Count; i++)
@@ -693,7 +691,16 @@ namespace Pong
             Size = new Size(_gamePanel.Width + Gap * 2 + _game.NutWidth * 2, _gamePanel.Height + _game.NutWidth * 4 + Gap * 4);
         }
 
-        private void MainFrm_KeyDown(object sender, KeyEventArgs e)
+        private void Main_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Left) _moveLeft = false;
+            if (e.KeyCode == Keys.Right) _moveRight = false;
+            if (_moveLeft || _moveRight) return;
+            _previousKey = Keys.None;
+            _movementTimer.Stop();
+        }
+
+        private void Main_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == _previousKey) return;
             _previousKey = e.KeyData;
@@ -735,7 +742,7 @@ namespace Pong
 
                     _ballTimer.Enabled = _gameStart;
                     _ballStart = true;
-                    _ballStick = false;
+                    _ballStick = _roundLose = false;
                     break;
 
                 #endregion
@@ -750,15 +757,6 @@ namespace Pong
 
                     #endregion
             }
-        }
-
-        private void PlayForm_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Left) _moveLeft = false;
-            if (e.KeyCode == Keys.Right) _moveRight = false;
-            if (_moveLeft || _moveRight) return;
-            _previousKey = Keys.None;
-            _movementTimer.Stop();
         }
 
         private void newGameToolStripMenuItem_Click(object sender, EventArgs e)
