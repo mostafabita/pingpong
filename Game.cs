@@ -6,7 +6,7 @@ namespace Pong
     public class Game
     {
         public GameLevel Level { get; private set; }
-        public FoodNumber Foods { get; private set; }
+        public Quantity FoodQuantity { get; private set; }
         public int Rows { get; private set; }
         public int Cols { get; private set; }
         public int NutWidth { get; private set; }
@@ -16,33 +16,33 @@ namespace Pong
         {
             var levelInitFuncDic = new Dictionary<GameLevel, Action>
             {
-                {GameLevel.Beginner, () => Initialize(GameLevel.Beginner, 5, 17, 20, 2, FoodNumber.Much)},
-                {GameLevel.Intermediate, () => Initialize(GameLevel.Intermediate, 7, 25, 15, 6, FoodNumber.Normal)},
-                {GameLevel.Advanced, () => Initialize(GameLevel.Advanced, 7, 30, 15, 8, FoodNumber.Few)}
+                {GameLevel.Beginner, () => Initialize(GameLevel.Beginner, 5, 17, 20, 2, Quantity.Much)},
+                {GameLevel.Intermediate, () => Initialize(GameLevel.Intermediate, 7, 25, 15, 6, Quantity.Normal)},
+                {GameLevel.Advanced, () => Initialize(GameLevel.Advanced, 7, 30, 15, 8, Quantity.Few)}
             };
 
             levelInitFuncDic[level]();
         }
 
-        public Game(int row, int cols, int nutWidth, int speed, FoodNumber foods)
+        public Game(int row, int cols, int nutWidth, int speed, Quantity foods)
         {
             Initialize(GameLevel.Custom, row, cols, nutWidth, speed, foods);
         }
 
-        protected void Initialize(GameLevel level, int row, int cols, int nutWidth, int speed, FoodNumber foods)
+        protected void Initialize(GameLevel level, int row, int cols, int nutWidth, int speed, Quantity foods)
         {
             Level = level;
             Rows = row;
             Cols = cols;
             NutWidth = nutWidth;
             Speed = speed;
-            Foods = foods;
+            FoodQuantity = foods;
         }
 
-        public FoodType RandomFood()
+        public FoodType GetRandomFood()
         {
             var rnd = new Random();
-            return rnd.Next((int)Foods) == 1 ? (FoodType)rnd.Next(0, 6) : FoodType.Null;
+            return rnd.Next((int)FoodQuantity) == 1 ? (FoodType)rnd.Next(0, 6) : FoodType.Null;
         }
     }
 }

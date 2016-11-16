@@ -31,11 +31,13 @@
         Null
     }
 
-    public enum FoodNumber
+    public enum Quantity
     {
+        Rare = 20,
         Few = 12,
         Normal = 10,
-        Much = 6
+        Much = 6,
+        VeryMuch = 3
     }
 
     public enum GameLevel

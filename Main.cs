@@ -97,7 +97,7 @@ namespace Pong
             for (var i = 1; i <= _game.Rows; i++)
                 for (var j = 1; j <= _game.Cols; j++)
                 {
-                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, FoodType.Big);
+                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, _game.GetRandomFood());
                     nut.FoodHit += Nut_FoodHit;
                     _controls.Add(nut);
                 }
@@ -182,7 +182,7 @@ namespace Pong
                             _controls[_ballIndex].Top -= _game.NutWidth;
                         else
                         {
-                            VisibilityScroring(dirResult);
+                            CalculateScore(dirResult);
                             _ballDirection = Direction.S;
                         }
                         break;
@@ -222,7 +222,7 @@ namespace Pong
                                     ((Nut)_controls[_ballIndex]).Index = tempNut.Index;
                                     break;
                                 default:
-                                    VisibilityScroring(dirResult);
+                                    CalculateScore(dirResult);
                                     _ballDirection = Direction.N;
                                     break;
                             }
@@ -263,28 +263,28 @@ namespace Pong
                                             _controls[_ballIndex].Top - _game.NutWidth);
                                     _ballDirection = Direction.NW;
                                 }
-                                VisibilityScroring(dirResult);
+                                CalculateScore(dirResult);
                             }
                             else if (vResult != -1 && hResult != -1)
                             {
                                 if (_movementStep == 1)
                                 {
-                                    VisibilityScroring(vResult);
+                                    CalculateScore(vResult);
                                     _ballDirection = Direction.SW;
                                 }
                                 else
                                     _ballDirection = Direction.NW;
 
-                                VisibilityScroring(hResult);
+                                CalculateScore(hResult);
                             }
                             else if (vResult != -1 && hResult == -1)
                             {
-                                VisibilityScroring(vResult);
+                                CalculateScore(vResult);
                                 _ballDirection = Direction.SE;
                             }
                             else if (vResult == -1 && hResult != -1)
                             {
-                                VisibilityScroring(hResult);
+                                CalculateScore(hResult);
                                 _ballDirection = Direction.NW;
                             }
                         }
@@ -325,28 +325,28 @@ namespace Pong
                                             _controls[_ballIndex].Top - _game.NutWidth);
                                     _ballDirection = Direction.NE;
                                 }
-                                VisibilityScroring(dirResult);
+                                CalculateScore(dirResult);
                             }
                             else if (vResult != -1 && hResult != -1)
                             {
                                 if (_movementStep == 1)
                                 {
-                                    VisibilityScroring(vResult);
+                                    CalculateScore(vResult);
                                     _ballDirection = Direction.SE;
                                 }
                                 else
                                     _ballDirection = Direction.NE;
 
-                                VisibilityScroring(hResult);
+                                CalculateScore(hResult);
                             }
                             else if (vResult != -1 && hResult == -1)
                             {
-                                VisibilityScroring(vResult);
+                                CalculateScore(vResult);
                                 _ballDirection = Direction.SW;
                             }
                             else if (vResult == -1 && hResult != -1)
                             {
-                                VisibilityScroring(hResult);
+                                CalculateScore(hResult);
                                 _ballDirection = Direction.NE;
                             }
                         }
@@ -383,7 +383,7 @@ namespace Pong
                             if (vResult == -1 && hResult == -1 && dirResult != -1)
                             {
                                 _movementStep = 2;
-                                VisibilityScroring(dirResult);
+                                CalculateScore(dirResult);
                                 _ballDirection = Direction.NW;
                             }
                             else if (vResult != -1 && hResult != -1)
@@ -394,8 +394,8 @@ namespace Pong
                                         StickBallToPaddle();
                                         return;
                                     }
-                                VisibilityScroring(hResult);
-                                VisibilityScroring(vResult);
+                                CalculateScore(hResult);
+                                CalculateScore(vResult);
                                 _ballDirection = Direction.NW;
                             }
                             else if (vResult != -1 && hResult == -1)
@@ -406,12 +406,12 @@ namespace Pong
                                         StickBallToPaddle();
                                         return;
                                     }
-                                VisibilityScroring(vResult);
+                                CalculateScore(vResult);
                                 _ballDirection = Direction.NE;
                             }
                             else if (vResult == -1 && hResult != -1)
                             {
-                                VisibilityScroring(hResult);
+                                CalculateScore(hResult);
                                 _ballDirection = Direction.SW;
                             }
                         }
@@ -448,7 +448,7 @@ namespace Pong
                             if (vResult == -1 && hResult == -1 && dirResult != -1)
                             {
                                 _movementStep = 2;
-                                VisibilityScroring(dirResult);
+                                CalculateScore(dirResult);
                                 _ballDirection = Direction.NE;
                             }
                             else if (vResult != -1 && hResult != -1)
@@ -459,8 +459,8 @@ namespace Pong
                                         StickBallToPaddle();
                                         return;
                                     }
-                                VisibilityScroring(hResult);
-                                VisibilityScroring(vResult);
+                                CalculateScore(hResult);
+                                CalculateScore(vResult);
                                 _ballDirection = Direction.NE;
                             }
                             else if (vResult != -1 && hResult == -1)
@@ -471,12 +471,12 @@ namespace Pong
                                         StickBallToPaddle();
                                         return;
                                     }
-                                VisibilityScroring(vResult);
+                                CalculateScore(vResult);
                                 _ballDirection = Direction.NW;
                             }
                             else if (vResult == -1 && hResult != -1)
                             {
-                                VisibilityScroring(hResult);
+                                CalculateScore(hResult);
                                 _ballDirection = Direction.SE;
                             }
                         }
@@ -650,7 +650,7 @@ namespace Pong
             }
         }
 
-        private void VisibilityScroring(int index)
+        private void CalculateScore(int index)
         {
             if (((Nut)_controls[index]).Type != NutType.Nut) return;
             _controls[index].Visible = false;
