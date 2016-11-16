@@ -10,17 +10,17 @@ namespace Pong
     public partial class Main : Form
     {
         private const short Gap = 3;
-        private const short Lives = 5;
+        private const short Hearts = 5;
         private const short NutsToPanelRatio = 4;
         private const short PaddleFragments = 5;
         private const short ScoreStep = 5;
         private const short MovementStep = 1;
-        private int _ballIndex;
-        private int _paddleIndex;
         private short _currentPaddleFrag;
         private short _score;
         private short _movementStep;
-        private short _lives;
+        private short _hearts;
+        private int _ballIndex;
+        private int _paddleIndex;
         private bool _gameStart;
         private bool _moveLeft;
         private bool _moveRight;
@@ -62,7 +62,7 @@ namespace Pong
 
             _gameStart = true;
             _movementStep = MovementStep;
-            _lives = Lives;
+            _hearts = Hearts;
             _currentPaddleFrag = PaddleFragments;
             _ballTimer.Interval = 200 / _game.Speed;
             Log("Game Start");
@@ -78,7 +78,7 @@ namespace Pong
             }
 
             #endregion
-
+             
             #region Horizontall Wall
 
             for (int i = 1, j = (_game.Rows * NutsToPanelRatio + 1) * _game.NutWidth; i <= _game.Cols; i++)
@@ -94,7 +94,7 @@ namespace Pong
             for (var i = 1; i <= _game.Rows; i++)
                 for (var j = 1; j <= _game.Cols; j++)
                 {
-                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, _game.RandomFood());
+                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, FoodType.Big);
                     nut.FoodHit += Nut_FoodHit;
                     _controls.Add(nut);
                 }
@@ -127,10 +127,10 @@ namespace Pong
         private void FoodHitTimer_Tick(object sender, EventArgs e)
         {
             var timer = (Timer)sender;
+            var nut = (Nut)timer.Tag;
             timer.Stop();
             if (_gameStart)
             {
-                var nut = (Nut)timer.Tag;
                 nut.Visible = true;
                 nut.Index = -2;
                 var dirResult = SearchPanel(new Point(nut.Left, nut.Top + _game.NutWidth));
@@ -144,7 +144,7 @@ namespace Pong
                         nut.Top += _game.NutWidth;
                         break;
                     default:
-                        if (((Nut)_controls[dirResult]).Type == NutType.Paddle)
+                        if (((Nut) _controls[dirResult]).Type == NutType.Paddle)
                         {
                             nut.Visible = false;
                             timer.Stop();
@@ -194,7 +194,7 @@ namespace Pong
                                 _controls[_ballIndex].Top + _game.NutWidth));
                         if (dirResult == -2)
                         {
-                            GameOver();
+                            LoseHeart();
                             return;
                         }
                         if (dirResult == -1)
@@ -366,7 +366,7 @@ namespace Pong
 
                         if (dirResult == -2 || vResult == -2 || hResult == -2)
                         {
-                            GameOver();
+                            LoseHeart();
                             return;
                         }
                         if (dirResult == -1 && vResult == -1 && hResult == -1)
@@ -431,7 +431,7 @@ namespace Pong
 
                         if (dirResult == -2 || vResult == -2 || hResult == -2)
                         {
-                            GameOver();
+                            LoseHeart();
                             return;
                         }
                         if (dirResult == -1 && vResult == -1 && hResult == -1)
@@ -520,8 +520,8 @@ namespace Pong
                     Log("Paddle Shrinked ...");
                     if (_currentPaddleFrag == 1)
                     {
-                        _lives = 0;
-                        GameOver();
+                        _hearts = 0;
+                        LoseHeart();
                     }
                     else
                         _controls[_ballIndex + _currentPaddleFrag--].Dispose();
@@ -534,7 +534,7 @@ namespace Pong
                     #region Live
 
                     Log("Live Increased ...");
-                    _lives++;
+                    _hearts++;
                     break;
 
                 #endregion
@@ -544,7 +544,7 @@ namespace Pong
                     #region Death
 
                     Log("Live Decreased ...");
-                    if (--_lives < 0) GameOver();
+                    if (--_hearts < 0) LoseHeart();
                     break;
 
                 #endregion
@@ -622,19 +622,19 @@ namespace Pong
             }
         }
 
-        private void GameOver()
+        private void LoseHeart()
         {
             _ballTimer.Stop();
             _ballStart = false;
             _ballDirection = Direction.N;
-            if (_lives > 0)
+            if (_hearts > 0)
             {
-                #region Loos Live
+                #region Lose Heart
 
-                _lives--;
-                _gameStart = !_gameStart;
+                _hearts--;
+                _gameStart = false;
                 Thread.Sleep(1500);
-                _gameStart = !_gameStart;
+                _gameStart = true;
                 RealignPaddle();
 
                 #endregion
@@ -645,11 +645,9 @@ namespace Pong
 
                 _gameStart = false;
                 MessageBox.Show("Game Over", "Pong", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                if (
-                    MessageBox.Show("Do you want to restart game ?", "Pong", MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("Do you want to restart game ?", "Pong", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    _lives = Lives;
+                    _hearts = Hearts;
                     _gameStart = true;
                     InitializeGame();
                 }
