@@ -78,7 +78,7 @@ namespace Pong
             }
 
             #endregion
-             
+
             #region Horizontall Wall
 
             for (int i = 1, j = (_game.Rows * NutsToPanelRatio + 1) * _game.NutWidth; i <= _game.Cols; i++)
@@ -144,7 +144,7 @@ namespace Pong
                         nut.Top += _game.NutWidth;
                         break;
                     default:
-                        if (((Nut) _controls[dirResult]).Type == NutType.Paddle)
+                        if (((Nut)_controls[dirResult]).Type == NutType.Paddle)
                         {
                             nut.Visible = false;
                             timer.Stop();
@@ -154,8 +154,18 @@ namespace Pong
                         nut.Top += _game.NutWidth;
                         break;
                 }
+                timer.Start();
             }
-            timer.Start();
+            else
+            {
+                #region Destroy dropped food on heart lose
+                if (!_ballStart)
+                {
+                    nut.Visible = false;
+                    timer.Stop();
+                } 
+                #endregion
+            }
         }
 
         private void _ballTimer_Tick(object sender, EventArgs e)
@@ -625,33 +635,22 @@ namespace Pong
         private void LoseHeart()
         {
             _ballTimer.Stop();
-            _ballStart = false;
+            _ballStart = _gameStart = false;
             _ballDirection = Direction.N;
-            if (_hearts > 0)
+            if (_hearts-- > 0)
             {
                 #region Lose Heart
-
-                _hearts--;
-                _gameStart = false;
                 Thread.Sleep(1500);
-                _gameStart = true;
                 RealignPaddle();
-
+                _gameStart = true;
                 #endregion
             }
             else
             {
                 #region Game Over
-
-                _gameStart = false;
                 MessageBox.Show("Game Over", "Pong", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 if (MessageBox.Show("Do you want to restart game ?", "Pong", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    _hearts = Hearts;
-                    _gameStart = true;
                     InitializeGame();
-                }
-
                 #endregion
             }
         }
