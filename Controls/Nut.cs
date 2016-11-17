@@ -7,7 +7,7 @@ namespace Pong.Controls
 {
     internal sealed class Nut : PictureBox
     {
-        public Nut(int left, int top, int width, NutType type = NutType.Wall, FoodType food = FoodType.Null, int index = 0)
+        public Nut(int left, int top, int width, NutType type = NutType.Null, FoodType food = FoodType.Null, int index = 0)
         {
             Left = left;
             Top = top;
@@ -81,6 +81,16 @@ namespace Pong.Controls
         public delegate void FoodHitDelegate(object sender);
 
         public event FoodHitDelegate FoodHit;
+
+        public NutBehavior GetBehavior()
+        {
+            if (Type == NutType.Null || !Visible) return NutBehavior.Continue;
+            if (Type == NutType.Earth) return NutBehavior.Earth;
+            if (Type == NutType.Paddle) return NutBehavior.Paddle;
+            if (Type != NutType.Earth && Index != -2) return NutBehavior.Others;
+            return NutBehavior.Continue;
+        }
+
 
     }
 }

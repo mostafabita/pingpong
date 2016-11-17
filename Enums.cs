@@ -16,7 +16,8 @@
         Earth,
         Nut,
         Paddle,
-        Wall
+        Wall,
+        Null
     }
 
     public enum FoodType

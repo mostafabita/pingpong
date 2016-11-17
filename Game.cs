@@ -12,8 +12,8 @@ namespace Pong
         public int NutWidth { get; private set; }
         public int Speed { get; set; }
 
-        private int _foodNumber = Enum.GetNames(typeof(FoodType)).Length - 1;
-        Random _random = new Random();
+        private readonly int _foodNumber = Enum.GetNames(typeof(FoodType)).Length - 1;
+        private readonly Random _random = new Random();
 
         public Game(GameLevel level)
         {

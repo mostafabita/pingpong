@@ -77,8 +77,8 @@ namespace Pong
 
             for (int i = 0, j = (_game.Cols + 1) * _game.NutWidth; i < _game.Rows * NutsToPanelRatio + 2; i++)
             {
-                _controls.Add(new Nut(0, i * _game.NutWidth, _game.NutWidth));
-                _controls.Add(new Nut(j, i * _game.NutWidth, _game.NutWidth));
+                _controls.Add(new Nut(0, i * _game.NutWidth, _game.NutWidth, NutType.Wall));
+                _controls.Add(new Nut(j, i * _game.NutWidth, _game.NutWidth, NutType.Wall));
             }
 
             #endregion
@@ -140,7 +140,7 @@ namespace Pong
             else
             {
                 var foundNut = FindNut(nut.Left, nut.Top + _game.NutWidth);
-                switch (GetNutBehavior(foundNut))
+                switch (foundNut.GetBehavior())
                 {
                     case NutBehavior.Paddle:
                         nut.Visible = false;
@@ -174,7 +174,7 @@ namespace Pong
                         #region North
 
                         nextNut = FindNut(ball.Left, ball.Top - _game.NutWidth);
-                        nextNutBehavior = GetNutBehavior(nextNut);
+                        nextNutBehavior = nextNut.GetBehavior();
                         if (nextNutBehavior == NutBehavior.Continue)
                             ball.Top -= _game.NutWidth;
                         else
@@ -191,7 +191,7 @@ namespace Pong
                         #region South
 
                         nextNut = FindNut(ball.Left, ball.Top + _game.NutWidth);
-                        nextNutBehavior = GetNutBehavior(nextNut);
+                        nextNutBehavior = nextNut.GetBehavior();
                         switch (nextNutBehavior)
                         {
                             case NutBehavior.Continue:
@@ -228,11 +228,11 @@ namespace Pong
                         #region North East
 
                         nextNut = FindNut(ball.Left + _game.NutWidth * _movementStep, ball.Top - _game.NutWidth);
-                        nextNutBehavior = GetNutBehavior(nextNut);
+                        nextNutBehavior = nextNut.GetBehavior();
                         nextHrNut = FindNut(ball.Left + _game.NutWidth, ball.Top);
-                        nextHrNutBehavior = GetNutBehavior(nextHrNut);
+                        nextHrNutBehavior = nextHrNut.GetBehavior();
                         nextVrNut = FindNut(ball.Left + (_movementStep == 1 ? 0 : _game.NutWidth), ball.Top - _game.NutWidth);
-                        nextVrNutBehavior = GetNutBehavior(nextVrNut);
+                        nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Continue && nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
                             ball.Location = new Point(ball.Left + _game.NutWidth * _movementStep, ball.Top - _game.NutWidth);
@@ -281,11 +281,11 @@ namespace Pong
                         #region Noth West
 
                         nextNut = FindNut(ball.Left - _game.NutWidth * _movementStep, ball.Top - _game.NutWidth);
-                        nextNutBehavior = GetNutBehavior(nextNut);
+                        nextNutBehavior = nextNut.GetBehavior();
                         nextHrNut = FindNut(ball.Left - _game.NutWidth, ball.Top);
-                        nextHrNutBehavior = GetNutBehavior(nextHrNut);
+                        nextHrNutBehavior = nextHrNut.GetBehavior();
                         nextVrNut = FindNut(ball.Left - (_movementStep == 1 ? 0 : _game.NutWidth), ball.Top - _game.NutWidth);
-                        nextVrNutBehavior = GetNutBehavior(nextVrNut);
+                        nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Continue && nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
                             ball.Location =
@@ -339,11 +339,11 @@ namespace Pong
                         #region South East
 
                         nextNut = FindNut(ball.Left + _game.NutWidth, ball.Top + _game.NutWidth);
-                        nextNutBehavior = GetNutBehavior(nextNut);
+                        nextNutBehavior = nextNut.GetBehavior();
                         nextHrNut = FindNut(ball.Left + _game.NutWidth, ball.Top);
-                        nextHrNutBehavior = GetNutBehavior(nextHrNut);
+                        nextHrNutBehavior = nextHrNut.GetBehavior();
                         nextVrNut = FindNut(ball.Left, ball.Top + _game.NutWidth);
-                        nextVrNutBehavior = GetNutBehavior(nextVrNut);
+                        nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Earth || nextVrNutBehavior == NutBehavior.Earth || nextHrNutBehavior == NutBehavior.Earth)
                         {
@@ -399,11 +399,11 @@ namespace Pong
                         #region South West
 
                         nextNut = FindNut(ball.Left - _game.NutWidth, ball.Top + _game.NutWidth);
-                        nextNutBehavior = GetNutBehavior(nextNut);
+                        nextNutBehavior = nextNut.GetBehavior();
                         nextHrNut = FindNut(ball.Left - _game.NutWidth, ball.Top);
-                        nextHrNutBehavior = GetNutBehavior(nextHrNut);
+                        nextHrNutBehavior = nextHrNut.GetBehavior();
                         nextVrNut = FindNut(ball.Left, ball.Top + _game.NutWidth);
-                        nextVrNutBehavior = GetNutBehavior(nextVrNut);
+                        nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Earth || nextVrNutBehavior == NutBehavior.Earth || nextHrNutBehavior == NutBehavior.Earth)
                         {
@@ -597,8 +597,7 @@ namespace Pong
         {
 
             _gameStart = false;
-            _ballStick = true;
-            _roundLose = true;
+            _ballStick = _roundLose = true;
             _ballDirection = Direction.N;
             if (_hearts-- > 0)
             {
@@ -627,16 +626,8 @@ namespace Pong
 
         private Nut FindNut(int x, int y)
         {
-            return _controls.Cast<Nut>().FirstOrDefault(o => o.Location == new Point(x, y));
-        }
-
-        private NutBehavior GetNutBehavior(Nut nut)
-        {
-            if (nut == null || !nut.Visible) return NutBehavior.Continue;
-            if (nut.Type == NutType.Earth) return NutBehavior.Earth;
-            if (nut.Type == NutType.Paddle) return NutBehavior.Paddle;
-            if (nut.Type != NutType.Earth && nut.Index != -2) return NutBehavior.Others;
-            return NutBehavior.Continue;
+            var nut = _controls.Cast<Nut>().FirstOrDefault(o => o.Location == new Point(x, y));
+            return nut;
         }
 
         private void Log(string content)
