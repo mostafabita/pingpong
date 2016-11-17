@@ -92,27 +92,20 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Pic\Chance.png" />
-    <None Include="Assets\Pic\Bomber.png" />
-    <None Include="Assets\Pic\clanbomber.png" />
-    <None Include="Assets\Pic\Fruit%281%29.png" />
-    <None Include="Assets\Pic\Fruit%282%29.png" />
-    <None Include="Assets\Pic\Fruit%283%29.png" />
-    <None Include="Assets\Pic\Fruit%284%29.png" />
-    <None Include="Assets\Pic\ledblue.png" />
-    <None Include="Assets\Pic\ledgreen.png" />
-    <None Include="Assets\Pic\ledorange.png" />
-    <None Include="Assets\Pic\ledpurple.png" />
-    <None Include="Assets\Pic\ledred.png" />
-    <None Include="Assets\Pic\ledyellow.png" />
-    <None Include="Assets\Pic\Square-Green.png" />
-    <None Include="Assets\Pic\Square-Red.png" />
-    <None Include="Assets\Pic\Star.png" />
-    <None Include="Assets\Pic\Pause.png" />
-    <None Include="Assets\Pic\Play.png" />
+    <Folder Include="bin\Debug\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="bin\Debug\" />
+    <Content Include="Assets\pic\award1.png" />
+    <Content Include="Assets\pic\award2.png" />
+    <Content Include="Assets\pic\award3.png" />
+    <Content Include="Assets\pic\award4.png" />
+    <Content Include="Assets\pic\award5.png" />
+    <Content Include="Assets\pic\award6.png" />
+    <Content Include="Assets\pic\award7.png" />
+    <Content Include="Assets\pic\award8.png" />
+    <Content Include="Assets\pic\nut1.png" />
+    <Content Include="Assets\pic\nut2.png" />
+    <Content Include="Assets\pic\nut3.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

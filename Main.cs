@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
@@ -20,8 +21,6 @@ namespace Pong
         private short _score;
         private short _movementStep;
         private short _hearts;
-        private int _ballIndex;
-        private int _paddleIndex;
         private bool _gameStart;
         private bool _ballStick;
         private bool _roundLose;
@@ -31,10 +30,12 @@ namespace Pong
         private Keys _previousKey;
         private GameLevel _gameLevel = GameLevel.Beginner;
         private Game _game;
+        private Nut _ball;
         private Panel _gamePanel;
         private Timer _ballTimer;
         private Timer _movementTimer;
         private Control.ControlCollection _controls;
+        private List<Control> _paddle;
 
         public Main()
         {
@@ -57,7 +58,7 @@ namespace Pong
                 Size = new Size((_game.Cols + 2) * _game.NutWidth + Gap, (_game.Rows * NutsToPanelRatio + 2) * _game.NutWidth + Gap),
                 BackColor = Color.White
             };
-
+            _paddle = new List<Control>();
             _gameStart = _ballStick = true;
             _movementStep = MovementStep;
             _hearts = Hearts;
@@ -67,11 +68,9 @@ namespace Pong
             _movementTimer = new Timer { Interval = 40, Enabled = false };
             _ballTimer.Tick += _ballTimer_Tick;
             _movementTimer.Tick += _movementTimer_Tick;
+            Size = new Size(_gamePanel.Width + Gap * 2 + _game.NutWidth * 2, _gamePanel.Height + _game.NutWidth * 4 + Gap * 4);
             Controls.RemoveByKey("gamePanel");
             Controls.Add(_gamePanel);
-            ResizeForm();
-
-            _controls.Clear();
 
             #region Vertical Wall
 
@@ -98,7 +97,7 @@ namespace Pong
             for (var i = 1; i <= _game.Rows; i++)
                 for (var j = 1; j <= _game.Cols; j++)
                 {
-                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, _game.GetRandomFood());
+                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, FoodType.Grow);
                     nut.FoodHit += Nut_FoodHit;
                     _controls.Add(nut);
                 }
@@ -107,18 +106,16 @@ namespace Pong
 
             #region Ball
 
-            _ballIndex = _controls.Count;
-            _controls.Add(new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth,
-                _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2));
+            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
+            _controls.Add(_ball);
 
             #endregion
 
             #region Paddle
 
-            _paddleIndex = _ballIndex + 1;
-            for (int i = 0, j = _controls[_ballIndex].Left - _currentPaddleFrag / 2 * _game.NutWidth; i < _currentPaddleFrag; i++, j += _game.NutWidth)
-                _controls.Add(new Nut(j, _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth, NutType.Paddle, FoodType.Null, i));
-
+            for (int i = 0, j = _ball.Left - _currentPaddleFrag / 2 * _game.NutWidth; i < _currentPaddleFrag; i++, j += _game.NutWidth)
+                _paddle.Add(new Nut(j, _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth, NutType.Paddle, FoodType.Null, i));
+            _controls.AddRange(_paddle.ToArray());
             #endregion
         }
 
@@ -164,8 +161,6 @@ namespace Pong
             {
                 Nut nextNut, nextHrNut, nextVrNut;
                 NutBehavior nextNutBehavior, nextHrNutBehavior, nextVrNutBehavior;
-                
-                var ball = (Nut)_controls[_ballIndex];
 
                 switch (_ballDirection)
                 {
@@ -173,10 +168,10 @@ namespace Pong
 
                         #region North
 
-                        nextNut = FindNut(ball.Left, ball.Top - _game.NutWidth);
+                        nextNut = FindNut(_ball.Left, _ball.Top - _game.NutWidth);
                         nextNutBehavior = nextNut.GetBehavior();
                         if (nextNutBehavior == NutBehavior.Continue)
-                            ball.Top -= _game.NutWidth;
+                            _ball.Top -= _game.NutWidth;
                         else
                         {
                             CalculateScore(nextNut);
@@ -190,12 +185,12 @@ namespace Pong
 
                         #region South
 
-                        nextNut = FindNut(ball.Left, ball.Top + _game.NutWidth);
+                        nextNut = FindNut(_ball.Left, _ball.Top + _game.NutWidth);
                         nextNutBehavior = nextNut.GetBehavior();
                         switch (nextNutBehavior)
                         {
                             case NutBehavior.Continue:
-                                ball.Top += _game.NutWidth;
+                                _ball.Top += _game.NutWidth;
                                 break;
                             case NutBehavior.Earth:
                                 LoseHeart();
@@ -206,12 +201,12 @@ namespace Pong
                                     StickBallToPaddle();
                                     return;
                                 }
-                                if (nextNut.Index > ball.Index)
+                                if (nextNut.Index > _ball.Index)
                                     _ballDirection = Direction.NE;
-                                else if (nextNut.Index < ball.Index)
+                                else if (nextNut.Index < _ball.Index)
                                     _ballDirection = Direction.NW;
                                 else _ballDirection = Direction.N;
-                                ball.Index = nextNut.Index;
+                                _ball.Index = nextNut.Index;
                                 break;
                             default:
                                 CalculateScore(nextNut);
@@ -227,15 +222,15 @@ namespace Pong
 
                         #region North East
 
-                        nextNut = FindNut(ball.Left + _game.NutWidth * _movementStep, ball.Top - _game.NutWidth);
+                        nextNut = FindNut(_ball.Left + _game.NutWidth * _movementStep, _ball.Top - _game.NutWidth);
                         nextNutBehavior = nextNut.GetBehavior();
-                        nextHrNut = FindNut(ball.Left + _game.NutWidth, ball.Top);
+                        nextHrNut = FindNut(_ball.Left + _game.NutWidth, _ball.Top);
                         nextHrNutBehavior = nextHrNut.GetBehavior();
-                        nextVrNut = FindNut(ball.Left + (_movementStep == 1 ? 0 : _game.NutWidth), ball.Top - _game.NutWidth);
+                        nextVrNut = FindNut(_ball.Left + (_movementStep == 1 ? 0 : _game.NutWidth), _ball.Top - _game.NutWidth);
                         nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Continue && nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
-                            ball.Location = new Point(ball.Left + _game.NutWidth * _movementStep, ball.Top - _game.NutWidth);
+                            _ball.Location = new Point(_ball.Left + _game.NutWidth * _movementStep, _ball.Top - _game.NutWidth);
                         else
                         {
                             if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue && nextNutBehavior != NutBehavior.Continue)
@@ -244,7 +239,7 @@ namespace Pong
                                     _ballDirection = Direction.SW;
                                 else
                                 {
-                                    ball.Location = new Point(ball.Left + _game.NutWidth, ball.Top - _game.NutWidth);
+                                    _ball.Location = new Point(_ball.Left + _game.NutWidth, _ball.Top - _game.NutWidth);
                                     _ballDirection = Direction.NW;
                                 }
                                 CalculateScore(nextNut);
@@ -280,17 +275,17 @@ namespace Pong
 
                         #region Noth West
 
-                        nextNut = FindNut(ball.Left - _game.NutWidth * _movementStep, ball.Top - _game.NutWidth);
+                        nextNut = FindNut(_ball.Left - _game.NutWidth * _movementStep, _ball.Top - _game.NutWidth);
                         nextNutBehavior = nextNut.GetBehavior();
-                        nextHrNut = FindNut(ball.Left - _game.NutWidth, ball.Top);
+                        nextHrNut = FindNut(_ball.Left - _game.NutWidth, _ball.Top);
                         nextHrNutBehavior = nextHrNut.GetBehavior();
-                        nextVrNut = FindNut(ball.Left - (_movementStep == 1 ? 0 : _game.NutWidth), ball.Top - _game.NutWidth);
+                        nextVrNut = FindNut(_ball.Left - (_movementStep == 1 ? 0 : _game.NutWidth), _ball.Top - _game.NutWidth);
                         nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Continue && nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
-                            ball.Location =
-                                new Point(ball.Left - _game.NutWidth * _movementStep,
-                                    ball.Top - _game.NutWidth);
+                            _ball.Location =
+                                new Point(_ball.Left - _game.NutWidth * _movementStep,
+                                    _ball.Top - _game.NutWidth);
                         else
                         {
                             if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue && nextNutBehavior != NutBehavior.Continue)
@@ -300,9 +295,9 @@ namespace Pong
                                     _ballDirection = Direction.SE;
                                 else
                                 {
-                                    ball.Location =
-                                        new Point(ball.Left - _game.NutWidth,
-                                            ball.Top - _game.NutWidth);
+                                    _ball.Location =
+                                        new Point(_ball.Left - _game.NutWidth,
+                                            _ball.Top - _game.NutWidth);
                                     _ballDirection = Direction.NE;
                                 }
                                 CalculateScore(nextNut);
@@ -338,11 +333,11 @@ namespace Pong
 
                         #region South East
 
-                        nextNut = FindNut(ball.Left + _game.NutWidth, ball.Top + _game.NutWidth);
+                        nextNut = FindNut(_ball.Left + _game.NutWidth, _ball.Top + _game.NutWidth);
                         nextNutBehavior = nextNut.GetBehavior();
-                        nextHrNut = FindNut(ball.Left + _game.NutWidth, ball.Top);
+                        nextHrNut = FindNut(_ball.Left + _game.NutWidth, _ball.Top);
                         nextHrNutBehavior = nextHrNut.GetBehavior();
-                        nextVrNut = FindNut(ball.Left, ball.Top + _game.NutWidth);
+                        nextVrNut = FindNut(_ball.Left, _ball.Top + _game.NutWidth);
                         nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Earth || nextVrNutBehavior == NutBehavior.Earth || nextHrNutBehavior == NutBehavior.Earth)
@@ -351,9 +346,9 @@ namespace Pong
                             return;
                         }
                         if (nextNutBehavior == NutBehavior.Continue && nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
-                            ball.Location =
-                                new Point(ball.Left + _game.NutWidth,
-                                    ball.Top + _game.NutWidth);
+                            _ball.Location =
+                                new Point(_ball.Left + _game.NutWidth,
+                                    _ball.Top + _game.NutWidth);
                         else
                         {
                             _movementStep = 1;
@@ -398,11 +393,11 @@ namespace Pong
 
                         #region South West
 
-                        nextNut = FindNut(ball.Left - _game.NutWidth, ball.Top + _game.NutWidth);
+                        nextNut = FindNut(_ball.Left - _game.NutWidth, _ball.Top + _game.NutWidth);
                         nextNutBehavior = nextNut.GetBehavior();
-                        nextHrNut = FindNut(ball.Left - _game.NutWidth, ball.Top);
+                        nextHrNut = FindNut(_ball.Left - _game.NutWidth, _ball.Top);
                         nextHrNutBehavior = nextHrNut.GetBehavior();
-                        nextVrNut = FindNut(ball.Left, ball.Top + _game.NutWidth);
+                        nextVrNut = FindNut(_ball.Left, _ball.Top + _game.NutWidth);
                         nextVrNutBehavior = nextVrNut.GetBehavior();
 
                         if (nextNutBehavior == NutBehavior.Earth || nextVrNutBehavior == NutBehavior.Earth || nextHrNutBehavior == NutBehavior.Earth)
@@ -411,9 +406,9 @@ namespace Pong
                             return;
                         }
                         if (nextNutBehavior == NutBehavior.Continue && nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
-                            ball.Location =
-                                new Point(ball.Left - _game.NutWidth,
-                                    ball.Top + _game.NutWidth);
+                            _ball.Location =
+                                new Point(_ball.Left - _game.NutWidth,
+                                    _ball.Top + _game.NutWidth);
                         else
                         {
                             _movementStep = 1;
@@ -467,43 +462,48 @@ namespace Pong
         {
             switch (foodType)
             {
-                case FoodType.Big:
+                case FoodType.Grow:
 
                     #region Big
 
                     Log("Paddle Growed ...");
                     if (_currentPaddleFrag < _game.Cols - 2)
                     {
-                        _controls.Add(
-                            new Nut(_controls[_paddleIndex + _currentPaddleFrag - 1].Left + _game.NutWidth,
-                                _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth,
-                                NutType.Paddle, FoodType.Null, _currentPaddleFrag));
-                        if (_controls[_paddleIndex + _currentPaddleFrag++ - 1].Left + _game.NutWidth * 2 >
-                            _gamePanel.Width - _game.NutWidth)
-                            for (var i = _paddleIndex; i < _paddleIndex + _currentPaddleFrag; i++)
-                                _controls[i].Left -= _game.NutWidth;
+                        var newNut = new Nut();
+                        if (_paddle[_currentPaddleFrag - 1].Left + _game.NutWidth * 2 < (_game.Cols + 2) * _game.NutWidth)
+                        {
+                            newNut = new Nut(_paddle[_currentPaddleFrag - 1].Left + _game.NutWidth, _paddle[0].Top, _game.NutWidth, NutType.Paddle, FoodType.Null, _currentPaddleFrag);
+                            _paddle.Add(newNut);
+                        }
+                        else if (_paddle[0].Left > _game.NutWidth)
+                        {
+                            newNut = new Nut(_paddle[0].Left - _game.NutWidth, _paddle[0].Top, _game.NutWidth, NutType.Paddle, FoodType.Null, ((Nut)_paddle[0]).Index - 1);
+                            _paddle.Insert(0, newNut);
+                        }
+                        _controls.Add(newNut);
+                        _currentPaddleFrag++;
                     }
                     break;
 
                 #endregion
 
-                case FoodType.Small:
+                case FoodType.Shrink:
 
                     #region Small
 
                     Log("Paddle Shrinked ...");
-                    if (_currentPaddleFrag == 1)
+                    if (--_currentPaddleFrag <= 0)
                     {
                         _hearts = 0;
                         LoseHeart();
                     }
                     else
-                        _controls[_ballIndex + _currentPaddleFrag--].Dispose();
+                        _paddle[_currentPaddleFrag].Dispose();
                     break;
 
                 #endregion
 
-                case FoodType.Live:
+                case FoodType.Heart:
 
                     #region Live
 
@@ -533,7 +533,7 @@ namespace Pong
 
                 #endregion
 
-                case FoodType.SpeedUp:
+                case FoodType.Faster:
 
                     #region Speed Up
 
@@ -544,7 +544,7 @@ namespace Pong
 
                 #endregion
 
-                case FoodType.SpeedDown:
+                case FoodType.Slower:
 
                     #region Speed Down
 
@@ -560,7 +560,7 @@ namespace Pong
         private void StickBallToPaddle()
         {
             _ballDirection = Direction.N;
-            ((Nut)_controls[_ballIndex]).Index = _currentPaddleFrag / 2;
+            _ball.Index = _currentPaddleFrag / 2;
         }
 
         private void MovePaddle()
@@ -570,24 +570,20 @@ namespace Pong
             if (_moveLeft)
             {
                 #region Left
-                if (_controls[_paddleIndex].Left - _game.NutWidth >= _game.NutWidth)
+                if (_paddle[0].Left > _game.NutWidth)
                 {
-                    for (var i = _paddleIndex; i < _paddleIndex + _currentPaddleFrag; i++)
-                        _controls[i].Left -= _game.NutWidth;
-                    if (_ballStick)
-                        _controls[_ballIndex].Left -= _game.NutWidth;
+                    foreach (var padd in _paddle) padd.Left -= _game.NutWidth;
+                    if (_ballStick) _ball.Left -= _game.NutWidth;
                 }
                 #endregion
             }
             if (_moveRight)
             {
                 #region Right
-                if (_controls[_paddleIndex + _currentPaddleFrag - 1].Left + _game.NutWidth * 2 <= _gamePanel.Width - _game.NutWidth)
+                if (_paddle[_currentPaddleFrag - 1].Left + _game.NutWidth * 2 < (_game.Cols + 2) * _game.NutWidth)
                 {
-                    for (var i = _paddleIndex; i < _paddleIndex + _currentPaddleFrag; i++)
-                        _controls[i].Left += _game.NutWidth;
-                    if (_ballStick)
-                        _controls[_ballIndex].Left += _game.NutWidth;
+                    foreach (var padd in _paddle) padd.Left += _game.NutWidth;
+                    if (_ballStick) _ball.Left += _game.NutWidth;
                 }
                 #endregion
             }
@@ -627,7 +623,7 @@ namespace Pong
         private Nut FindNut(int x, int y)
         {
             var nut = _controls.Cast<Nut>().FirstOrDefault(o => o.Location == new Point(x, y));
-            return nut;
+            return nut ?? new Nut();
         }
 
         private void Log(string content)
@@ -637,16 +633,14 @@ namespace Pong
 
         private void RealignPaddle()
         {
-            var ball = (Nut)_controls[_ballIndex];
-            ball.Location = new Point((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
-            ball.Index = _currentPaddleFrag / 2;
-            for (int i = 0, j = ball.Left - _currentPaddleFrag / 2 * _game.NutWidth; i < _currentPaddleFrag; i++, j += _game.NutWidth)
-                _controls[_paddleIndex + i].Location = new Point(j, _game.Rows * NutsToPanelRatio * _game.NutWidth);
-        }
-
-        private void ResizeForm()
-        {
-            Size = new Size(_gamePanel.Width + Gap * 2 + _game.NutWidth * 2, _gamePanel.Height + _game.NutWidth * 4 + Gap * 4);
+            _ball.Location = new Point((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
+            _ball.Index = _currentPaddleFrag / 2;
+            var paddleStartPosition = _ball.Left - _currentPaddleFrag / 2 * _game.NutWidth;
+            foreach (var padd in _paddle)
+            {
+                padd.Left = paddleStartPosition;
+                paddleStartPosition += _game.NutWidth;
+            }
         }
 
         private void Main_KeyUp(object sender, KeyEventArgs e)

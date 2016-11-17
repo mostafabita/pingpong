@@ -11,7 +11,6 @@ namespace Pong
         public int Cols { get; private set; }
         public int NutWidth { get; private set; }
         public int Speed { get; set; }
-
         private readonly int _foodNumber = Enum.GetNames(typeof(FoodType)).Length - 1;
         private readonly Random _random = new Random();
 

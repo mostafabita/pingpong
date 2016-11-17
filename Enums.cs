@@ -24,11 +24,11 @@
     {
         Stick,
         Death,
-        Live,
-        Big,
-        Small,
-        SpeedDown,
-        SpeedUp,
+        Heart,
+        Grow,
+        Shrink,
+        Slower,
+        Faster,
         Null
     }
 

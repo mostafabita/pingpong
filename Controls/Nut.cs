@@ -7,7 +7,7 @@ namespace Pong.Controls
 {
     internal sealed class Nut : PictureBox
     {
-        public Nut(int left, int top, int width, NutType type = NutType.Null, FoodType food = FoodType.Null, int index = 0)
+        public Nut(int left = 0, int top = 0, int width = 0, NutType type = NutType.Null, FoodType food = FoodType.Null, int index = 0)
         {
             Left = left;
             Top = top;
@@ -49,26 +49,27 @@ namespace Pong.Controls
         {
             var wallImageFuncDic = new Dictionary<NutType, Image>
             {
-                {NutType.Wall, Image.FromFile(Program.AssetsPath + "\\pic\\square2.png")},
-                {NutType.Earth, Image.FromFile(Program.AssetsPath + "\\pic\\square2.png")},
-                {NutType.Ball, Image.FromFile(Program.AssetsPath + "\\pic\\square1.png")},
-                {NutType.Nut, Image.FromFile(Program.AssetsPath + "\\pic\\square3.png")},
-                {NutType.Paddle, Image.FromFile(Program.AssetsPath + "\\pic\\square3.png")}
+                {NutType.Wall, Image.FromFile(Program.AssetsPath + "\\pic\\nut2.png")},
+                {NutType.Earth, Image.FromFile(Program.AssetsPath + "\\pic\\nut2.png")},
+                {NutType.Ball, Image.FromFile(Program.AssetsPath + "\\pic\\nut1.png")},
+                {NutType.Nut, Image.FromFile(Program.AssetsPath + "\\pic\\nut3.png")},
+                {NutType.Paddle, Image.FromFile(Program.AssetsPath + "\\pic\\nut3.png")},
+                {NutType.Null, null}
             };
             return wallImageFuncDic[type];
         }
 
-        private Image GetFoodImage(FoodType food)
+        private static Image GetFoodImage(FoodType food)
         {
             var foodImageFuncDic = new Dictionary<FoodType, Image>
             {
-                {FoodType.Stick, Image.FromFile(Program.AssetsPath + "\\pic\\fruit6.png")},
-                {FoodType.Death, Image.FromFile(Program.AssetsPath + "\\pic\\fruit2.png")},
-                {FoodType.Live, Image.FromFile(Program.AssetsPath + "\\pic\\fruit4.png")},
-                {FoodType.Big, Image.FromFile(Program.AssetsPath + "\\pic\\fruit5.png")},
-                {FoodType.Small, Image.FromFile(Program.AssetsPath + "\\pic\\fruit3.png")},
-                {FoodType.SpeedDown, Image.FromFile(Program.AssetsPath + "\\pic\\fruit7.png")},
-                {FoodType.SpeedUp, Image.FromFile(Program.AssetsPath + "\\pic\\fruit1.png")}
+                {FoodType.Stick, Image.FromFile(Program.AssetsPath + "\\pic\\award6.png")},
+                {FoodType.Death, Image.FromFile(Program.AssetsPath + "\\pic\\award2.png")},
+                {FoodType.Heart, Image.FromFile(Program.AssetsPath + "\\pic\\award8.png")},
+                {FoodType.Grow, Image.FromFile(Program.AssetsPath + "\\pic\\award5.png")},
+                {FoodType.Shrink, Image.FromFile(Program.AssetsPath + "\\pic\\award3.png")},
+                {FoodType.Slower, Image.FromFile(Program.AssetsPath + "\\pic\\award7.png")},
+                {FoodType.Faster, Image.FromFile(Program.AssetsPath + "\\pic\\award1.png")}
             };
             return foodImageFuncDic[food];
         }
@@ -90,7 +91,5 @@ namespace Pong.Controls
             if (Type != NutType.Earth && Index != -2) return NutBehavior.Others;
             return NutBehavior.Continue;
         }
-
-
     }
 }
