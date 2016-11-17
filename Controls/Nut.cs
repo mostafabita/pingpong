@@ -58,17 +58,17 @@ namespace Pong.Controls
             return wallImageFuncDic[type];
         }
 
-        private static Image GetFoodImage(FoodType food)
+        private Image GetFoodImage(FoodType food)
         {
             var foodImageFuncDic = new Dictionary<FoodType, Image>
             {
-                {FoodType.Stick, Image.FromFile(Program.AssetsPath + "\\pic\\fruit1.png")},
+                {FoodType.Stick, Image.FromFile(Program.AssetsPath + "\\pic\\fruit6.png")},
                 {FoodType.Death, Image.FromFile(Program.AssetsPath + "\\pic\\fruit2.png")},
-                {FoodType.Live, Image.FromFile(Program.AssetsPath + "\\pic\\fruit3.png")},
-                {FoodType.Big, Image.FromFile(Program.AssetsPath + "\\pic\\fruit4.png")},
-                {FoodType.Small, Image.FromFile(Program.AssetsPath + "\\pic\\fruit5.png")},
-                {FoodType.SpeedDown, Image.FromFile(Program.AssetsPath + "\\pic\\fruit6.png")},
-                {FoodType.SpeedUp, Image.FromFile(Program.AssetsPath + "\\pic\\fruit7.png")}
+                {FoodType.Live, Image.FromFile(Program.AssetsPath + "\\pic\\fruit4.png")},
+                {FoodType.Big, Image.FromFile(Program.AssetsPath + "\\pic\\fruit5.png")},
+                {FoodType.Small, Image.FromFile(Program.AssetsPath + "\\pic\\fruit3.png")},
+                {FoodType.SpeedDown, Image.FromFile(Program.AssetsPath + "\\pic\\fruit7.png")},
+                {FoodType.SpeedUp, Image.FromFile(Program.AssetsPath + "\\pic\\fruit1.png")}
             };
             return foodImageFuncDic[food];
         }

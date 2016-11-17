@@ -37,7 +37,15 @@
         Few = 12,
         Normal = 10,
         Much = 6,
-        VeryMuch = 3
+        VeryMuch = 1
+    }
+
+    public enum NutBehavior
+    {
+        Continue,
+        Earth,
+        Paddle,
+        Others
     }
 
     public enum GameLevel

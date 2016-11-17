@@ -12,13 +12,16 @@ namespace Pong
         public int NutWidth { get; private set; }
         public int Speed { get; set; }
 
+        private int _foodNumber = Enum.GetNames(typeof(FoodType)).Length - 1;
+        Random _random = new Random();
+
         public Game(GameLevel level)
         {
             var levelInitFuncDic = new Dictionary<GameLevel, Action>
             {
                 {GameLevel.Beginner, () => Initialize(GameLevel.Beginner, 5, 17, 20, 2, Quantity.Much)},
-                {GameLevel.Intermediate, () => Initialize(GameLevel.Intermediate, 7, 25, 15, 6, Quantity.Normal)},
-                {GameLevel.Advanced, () => Initialize(GameLevel.Advanced, 7, 30, 15, 8, Quantity.Few)}
+                {GameLevel.Intermediate, () => Initialize(GameLevel.Intermediate, 7, 25, 15, 4, Quantity.Normal)},
+                {GameLevel.Advanced, () => Initialize(GameLevel.Advanced, 7, 30, 15, 6, Quantity.Few)}
             };
 
             levelInitFuncDic[level]();
@@ -41,8 +44,7 @@ namespace Pong
 
         public FoodType GetRandomFood()
         {
-            var rnd = new Random();
-            return rnd.Next((int)FoodQuantity) == 1 ? (FoodType)rnd.Next(0, 6) : FoodType.Null;
+            return _random.Next((int)FoodQuantity) == 0 ? (FoodType)_random.Next(0, _foodNumber) : FoodType.Null;
         }
     }
 }

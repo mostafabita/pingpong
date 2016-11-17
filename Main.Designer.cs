@@ -29,11 +29,12 @@ namespace Pong
         private void InitializeComponent()
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.newGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeLevelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.beginnerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.intermediateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.advancedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -41,51 +42,61 @@ namespace Pong
             // 
             this.menuStrip1.Dock = System.Windows.Forms.DockStyle.None;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.newGameToolStripMenuItem,
             this.changeLevelToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(7, 5);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(175, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(150, 24);
             this.menuStrip1.TabIndex = 13;
             this.menuStrip1.Text = "menuStrip1";
-            // 
-            // newGameToolStripMenuItem
-            // 
-            this.newGameToolStripMenuItem.Name = "newGameToolStripMenuItem";
-            this.newGameToolStripMenuItem.Size = new System.Drawing.Size(77, 20);
-            this.newGameToolStripMenuItem.Text = "New Game";
-            this.newGameToolStripMenuItem.Click += new System.EventHandler(this.newGameToolStripMenuItem_Click);
             // 
             // changeLevelToolStripMenuItem
             // 
             this.changeLevelToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.newGameToolStripMenuItem,
+            this.toolStripMenuItem1,
             this.beginnerToolStripMenuItem,
             this.intermediateToolStripMenuItem,
             this.advancedToolStripMenuItem});
             this.changeLevelToolStripMenuItem.Name = "changeLevelToolStripMenuItem";
-            this.changeLevelToolStripMenuItem.Size = new System.Drawing.Size(90, 20);
-            this.changeLevelToolStripMenuItem.Text = "Change Level";
+            this.changeLevelToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.changeLevelToolStripMenuItem.Text = "Menu";
             // 
             // beginnerToolStripMenuItem
             // 
             this.beginnerToolStripMenuItem.Name = "beginnerToolStripMenuItem";
-            this.beginnerToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.beginnerToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F2;
+            this.beginnerToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
             this.beginnerToolStripMenuItem.Text = "Beginner";
             this.beginnerToolStripMenuItem.Click += new System.EventHandler(this.changeLevelToolStripMenuItem_Click);
             // 
             // intermediateToolStripMenuItem
             // 
             this.intermediateToolStripMenuItem.Name = "intermediateToolStripMenuItem";
-            this.intermediateToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.intermediateToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F3;
+            this.intermediateToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
             this.intermediateToolStripMenuItem.Text = "Intermediate";
             this.intermediateToolStripMenuItem.Click += new System.EventHandler(this.changeLevelToolStripMenuItem_Click);
             // 
             // advancedToolStripMenuItem
             // 
             this.advancedToolStripMenuItem.Name = "advancedToolStripMenuItem";
-            this.advancedToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.advancedToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F4;
+            this.advancedToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
             this.advancedToolStripMenuItem.Text = "Advanced";
             this.advancedToolStripMenuItem.Click += new System.EventHandler(this.changeLevelToolStripMenuItem_Click);
+            // 
+            // newGameToolStripMenuItem
+            // 
+            this.newGameToolStripMenuItem.Name = "newGameToolStripMenuItem";
+            this.newGameToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
+            this.newGameToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.newGameToolStripMenuItem.Text = "New Game";
+            this.newGameToolStripMenuItem.Click += new System.EventHandler(this.newGameToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(157, 6);
             // 
             // Main
             // 
@@ -108,11 +119,12 @@ namespace Pong
 
         #endregion
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem newGameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem changeLevelToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem beginnerToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem intermediateToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem advancedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem newGameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
     }
 }
 
