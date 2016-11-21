@@ -13,15 +13,18 @@ namespace Pong
     {
         private const short Gap = 3;
         private const short Hearts = 5;
+        private const short ScoreStep = 4;
+        private const short MovementStep = 1;
         private const short NutsToPanelRatio = 4;
         private const short PaddleFragments = 5;
-        private const short ScoreStep = 5;
-        private const short MovementStep = 1;
         private short _currentPaddleFrag;
         private short _score;
+        private short _scoreStep;
         private short _movementStep;
         private short _hearts;
+        private short _ballTop;
         private bool _gameStart;
+        private bool _ballStart;
         private bool _ballStick;
         private bool _roundLose;
         private bool _moveLeft;
@@ -36,6 +39,7 @@ namespace Pong
         private Timer _movementTimer;
         private Control.ControlCollection _controls;
         private List<Control> _paddle;
+        private List<Control> _nuts;
 
         public Main()
         {
@@ -59,12 +63,18 @@ namespace Pong
                 BackColor = Color.White
             };
             _paddle = new List<Control>();
-            _gameStart = _ballStick = true;
+            _nuts = new List<Control>();
+            _gameStart = true;
+            _ballStick = _ballStart = false;
             _movementStep = MovementStep;
+            _scoreStep = (short)(ScoreStep + (short)gameLevel);
             _hearts = Hearts;
+            _ballTop = (short)((_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
             _currentPaddleFrag = PaddleFragments;
             _controls = _gamePanel.Controls;
+            _ballTimer?.Stop();
             _ballTimer = new Timer { Interval = 200 / _game.Speed, Enabled = true };
+            _movementTimer?.Stop();
             _movementTimer = new Timer { Interval = 40, Enabled = false };
             _ballTimer.Tick += _ballTimer_Tick;
             _movementTimer.Tick += _movementTimer_Tick;
@@ -97,16 +107,17 @@ namespace Pong
             for (var i = 1; i <= _game.Rows; i++)
                 for (var j = 1; j <= _game.Cols; j++)
                 {
-                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, FoodType.Grow);
+                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, _game.GetRandomFood());
                     nut.FoodHit += Nut_FoodHit;
-                    _controls.Add(nut);
+                    _nuts.Add(nut);
                 }
+            _controls.AddRange(_nuts.ToArray());
 
             #endregion
 
             #region Ball
 
-            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
+            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, _ballTop, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
             _controls.Add(_ball);
 
             #endregion
@@ -140,16 +151,22 @@ namespace Pong
                 switch (foundNut.GetBehavior())
                 {
                     case NutBehavior.Paddle:
+                        #region Paddle
                         nut.Visible = false;
                         timer.Stop();
                         Award(nut.Food);
                         return;
+                    #endregion
                     case NutBehavior.Earth:
+                        #region Earth
                         nut.Visible = false;
                         return;
+                    #endregion
                     default:
+                        #region Default
                         nut.Top += _game.NutWidth;
                         break;
+                        #endregion
                 }
                 timer.Start();
             }
@@ -157,7 +174,7 @@ namespace Pong
 
         private void _ballTimer_Tick(object sender, EventArgs e)
         {
-            if (_gameStart && !_ballStick)
+            if (_gameStart && _ballStart)
             {
                 Nut nextNut, nextHrNut, nextVrNut;
                 NutBehavior nextNutBehavior, nextHrNutBehavior, nextVrNutBehavior;
@@ -559,6 +576,7 @@ namespace Pong
 
         private void StickBallToPaddle()
         {
+            _ballStart = false;
             _ballDirection = Direction.N;
             _ball.Index = _currentPaddleFrag / 2;
         }
@@ -573,7 +591,7 @@ namespace Pong
                 if (_paddle[0].Left > _game.NutWidth)
                 {
                     foreach (var padd in _paddle) padd.Left -= _game.NutWidth;
-                    if (_ballStick) _ball.Left -= _game.NutWidth;
+                    if (!_ballStart && _ball.Top == _ballTop) _ball.Left -= _game.NutWidth;
                 }
                 #endregion
             }
@@ -583,7 +601,7 @@ namespace Pong
                 if (_paddle[_currentPaddleFrag - 1].Left + _game.NutWidth * 2 < (_game.Cols + 2) * _game.NutWidth)
                 {
                     foreach (var padd in _paddle) padd.Left += _game.NutWidth;
-                    if (_ballStick) _ball.Left += _game.NutWidth;
+                    if (!_ballStart && _ball.Top == _ballTop) _ball.Left += _game.NutWidth;
                 }
                 #endregion
             }
@@ -591,9 +609,8 @@ namespace Pong
 
         private void LoseHeart()
         {
-
-            _gameStart = false;
-            _ballStick = _roundLose = true;
+            _gameStart = _ballStart = false;
+            _roundLose = true;
             _ballDirection = Direction.N;
             if (_hearts-- > 0)
             {
@@ -617,7 +634,8 @@ namespace Pong
         {
             if (nut.Type != NutType.Nut) return;
             nut.Visible = false;
-            if ((_score += ScoreStep) >= _game.Rows * _game.Cols * ScoreStep) MessageBox.Show("YOU WIN");
+            _score += _scoreStep;
+            if (!_nuts.Any(o => ((Nut)o).Type == NutType.Nut && o.Visible)) MessageBox.Show("YOU WIN");
         }
 
         private Nut FindNut(int x, int y)
@@ -691,7 +709,7 @@ namespace Pong
                 case Keys.Space:
 
                     #region Space
-                    _gameStart = true;
+                    _gameStart = _ballStart = true;
                     _ballStick = _roundLose = false;
                     break;
 
