@@ -11,78 +11,71 @@ namespace Pong
 {
     public partial class Main : Form
     {
-        private const short Gap = 3;
-        private const short Hearts = 5;
-        private const short ScoreStep = 4;
-        private const short MovementStep = 1;
-        private const short NutsToPanelRatio = 4;
-        private const short PaddleFragments = 5;
-        private short _currentPaddleFrag;
-        private short _score;
-        private short _scoreStep;
-        private short _movementStep;
-        private short _hearts;
+        private int _currentPaddleFrag;
+        private int _speed;
+        private int _score;
+        private int _scoreStep;
+        private int _movementStep;
+        private int _hearts;
         private bool _gameStart;
         private bool _ballStart;
         private bool _ballStick;
         private bool _roundLose;
         private bool _moveLeft;
         private bool _moveRight;
-        private Direction _ballDirection = Direction.N;
-        private Keys _previousKey;
-        private GameLevel _gameLevel = GameLevel.Beginner;
         private Game _game;
-        private Nut _ball;
         private Panel _gamePanel;
         private Timer _ballTimer;
         private Timer _movementTimer;
         private Control.ControlCollection _controls;
         private List<Control> _paddle;
         private List<Control> _nuts;
+        private Nut _ball;
+        private Direction _ballDir = Direction.N;
 
         public Main()
         {
             InitializeComponent();
-            InitializeGame(_gameLevel);
+            InitializeGame();
         }
 
-        public void InitializeGame(GameLevel gameLevel)
+        public void InitializeGame(GameLevel gameLevel = GameLevel.Beginner)
         {
             Log("Game Start");
             KeyDown += Main_KeyDown;
             KeyUp += Main_KeyUp;
-            _gameLevel = gameLevel;
-            _game = new Game(_gameLevel);
+            _game = new Game(gameLevel);
             _gamePanel = new Panel
             {
                 Name = "gamePanel",
                 BorderStyle = BorderStyle.FixedSingle,
                 Location = new Point(_game.NutWidth, _game.NutWidth * 2),
-                Size = new Size((_game.Cols + 2) * _game.NutWidth + Gap, (_game.Rows * NutsToPanelRatio + 2) * _game.NutWidth + Gap),
+                Size = new Size((_game.Cols + 2) * _game.NutWidth + _game.Gap, (_game.Rows * _game.NutsToPanelRatio + 2) * _game.NutWidth + _game.Gap),
                 BackColor = Color.White
             };
             _paddle = new List<Control>();
             _nuts = new List<Control>();
             _gameStart = true;
             _ballStick = _ballStart = false;
-            _movementStep = MovementStep;
-            _scoreStep = (short)(ScoreStep + (short)gameLevel);
-            _hearts = Hearts;
-            _currentPaddleFrag = PaddleFragments;
+            _movementStep = _game.MovementStep;
+            _scoreStep = (short)(_game.ScoreStep + (short)gameLevel);
+            _hearts = _game.Hearts;
+            _speed = _game.Speed;
+            _currentPaddleFrag = _game.PaddleFragments;
             _controls = _gamePanel.Controls;
             _ballTimer?.Stop();
-            _ballTimer = new Timer { Interval = 200 / _game.Speed, Enabled = true };
+            _ballTimer = new Timer { Interval = 200 / _speed, Enabled = true };
             _movementTimer?.Stop();
             _movementTimer = new Timer { Interval = 40, Enabled = false };
             _ballTimer.Tick += _ballTimer_Tick;
             _movementTimer.Tick += _movementTimer_Tick;
-            Size = new Size(_gamePanel.Width + Gap * 2 + _game.NutWidth * 2, _gamePanel.Height + _game.NutWidth * 4 + Gap * 4);
+            Size = new Size(_gamePanel.Width + _game.Gap * 2 + _game.NutWidth * 2, _gamePanel.Height + _game.NutWidth * 4 + _game.Gap * 4);
             Controls.RemoveByKey("gamePanel");
             Controls.Add(_gamePanel);
 
             #region Vertical Wall
 
-            for (int i = 0, j = (_game.Cols + 1) * _game.NutWidth; i < _game.Rows * NutsToPanelRatio + 2; i++)
+            for (int i = 0, j = (_game.Cols + 1) * _game.NutWidth; i < _game.Rows * _game.NutsToPanelRatio + 2; i++)
             {
                 _controls.Add(new Nut(0, i * _game.NutWidth, _game.NutWidth, NutType.Wall));
                 _controls.Add(new Nut(j, i * _game.NutWidth, _game.NutWidth, NutType.Wall));
@@ -92,7 +85,7 @@ namespace Pong
 
             #region Horizontall Wall
 
-            for (int i = 1, j = (_game.Rows * NutsToPanelRatio + 1) * _game.NutWidth; i <= _game.Cols; i++)
+            for (int i = 1, j = (_game.Rows * _game.NutsToPanelRatio + 1) * _game.NutWidth; i <= _game.Cols; i++)
             {
                 _controls.Add(new Nut(i * _game.NutWidth, 0, _game.NutWidth, NutType.Wall));
                 _controls.Add(new Nut(i * _game.NutWidth, j, _game.NutWidth, NutType.Earth));
@@ -105,7 +98,7 @@ namespace Pong
             for (var i = 1; i <= _game.Rows; i++)
                 for (var j = 1; j <= _game.Cols; j++)
                 {
-                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, _game.GetRandomFood());
+                    var nut = new Nut(j * _game.NutWidth, i * _game.NutWidth, _game.NutWidth, NutType.Nut, FoodType.Slower);
                     nut.FoodHit += Nut_FoodHit;
                     _nuts.Add(nut);
                 }
@@ -115,7 +108,7 @@ namespace Pong
 
             #region Ball
 
-            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
+            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * _game.NutsToPanelRatio - 1) * _game.NutWidth, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
             _controls.Add(_ball);
 
             #endregion
@@ -123,7 +116,7 @@ namespace Pong
             #region Paddle
 
             for (int i = 0, j = _ball.Left - _currentPaddleFrag / 2 * _game.NutWidth; i < _currentPaddleFrag; i++, j += _game.NutWidth)
-                _paddle.Add(new Nut(j, _game.Rows * NutsToPanelRatio * _game.NutWidth, _game.NutWidth, NutType.Paddle, FoodType.Null, i));
+                _paddle.Add(new Nut(j, _game.Rows * _game.NutsToPanelRatio * _game.NutWidth, _game.NutWidth, NutType.Paddle, FoodType.Null, i));
             _controls.AddRange(_paddle.ToArray());
             #endregion
         }
@@ -177,7 +170,7 @@ namespace Pong
                 Nut nextNut, nextHrNut, nextVrNut;
                 NutBehavior nextNutBehavior, nextHrNutBehavior, nextVrNutBehavior;
 
-                switch (_ballDirection)
+                switch (_ballDir)
                 {
                     case Direction.N:
 
@@ -190,7 +183,7 @@ namespace Pong
                         else
                         {
                             CalculateScore(nextNut);
-                            _ballDirection = Direction.S;
+                            _ballDir = Direction.S;
                         }
                         break;
 
@@ -217,15 +210,15 @@ namespace Pong
                                     return;
                                 }
                                 if (nextNut.Index > _ball.Index)
-                                    _ballDirection = Direction.NE;
+                                    _ballDir = Direction.NE;
                                 else if (nextNut.Index < _ball.Index)
-                                    _ballDirection = Direction.NW;
-                                else _ballDirection = Direction.N;
+                                    _ballDir = Direction.NW;
+                                else _ballDir = Direction.N;
                                 _ball.Index = nextNut.Index;
                                 break;
                             default:
                                 CalculateScore(nextNut);
-                                _ballDirection = Direction.N;
+                                _ballDir = Direction.N;
                                 break;
 
                         }
@@ -251,11 +244,11 @@ namespace Pong
                             if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue && nextNutBehavior != NutBehavior.Continue)
                             {
                                 if (_movementStep == 1)
-                                    _ballDirection = Direction.SW;
+                                    _ballDir = Direction.SW;
                                 else
                                 {
                                     _ball.Location = new Point(_ball.Left + _game.NutWidth, _ball.Top - _game.NutWidth);
-                                    _ballDirection = Direction.NW;
+                                    _ballDir = Direction.NW;
                                 }
                                 CalculateScore(nextNut);
                             }
@@ -264,22 +257,22 @@ namespace Pong
                                 if (_movementStep == 1)
                                 {
                                     CalculateScore(nextVrNut);
-                                    _ballDirection = Direction.SW;
+                                    _ballDir = Direction.SW;
                                 }
                                 else
-                                    _ballDirection = Direction.NW;
+                                    _ballDir = Direction.NW;
 
                                 CalculateScore(nextHrNut);
                             }
                             else if (nextVrNutBehavior != NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
                             {
                                 CalculateScore(nextVrNut);
-                                _ballDirection = Direction.SE;
+                                _ballDir = Direction.SE;
                             }
                             else if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior != NutBehavior.Continue)
                             {
                                 CalculateScore(nextHrNut);
-                                _ballDirection = Direction.NW;
+                                _ballDir = Direction.NW;
                             }
                         }
                         break;
@@ -307,13 +300,13 @@ namespace Pong
                             {
                                 if (_movementStep == 1)
 
-                                    _ballDirection = Direction.SE;
+                                    _ballDir = Direction.SE;
                                 else
                                 {
                                     _ball.Location =
                                         new Point(_ball.Left - _game.NutWidth,
                                             _ball.Top - _game.NutWidth);
-                                    _ballDirection = Direction.NE;
+                                    _ballDir = Direction.NE;
                                 }
                                 CalculateScore(nextNut);
                             }
@@ -322,22 +315,22 @@ namespace Pong
                                 if (_movementStep == 1)
                                 {
                                     CalculateScore(nextVrNut);
-                                    _ballDirection = Direction.SE;
+                                    _ballDir = Direction.SE;
                                 }
                                 else
-                                    _ballDirection = Direction.NE;
+                                    _ballDir = Direction.NE;
 
                                 CalculateScore(nextHrNut);
                             }
                             else if (nextVrNutBehavior != NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
                             {
                                 CalculateScore(nextVrNut);
-                                _ballDirection = Direction.SW;
+                                _ballDir = Direction.SW;
                             }
                             else if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior != NutBehavior.Continue)
                             {
                                 CalculateScore(nextHrNut);
-                                _ballDirection = Direction.NE;
+                                _ballDir = Direction.NE;
                             }
                         }
                         break;
@@ -371,7 +364,7 @@ namespace Pong
                             {
                                 _movementStep = 2;
                                 CalculateScore(nextNut);
-                                _ballDirection = Direction.NW;
+                                _ballDir = Direction.NW;
                             }
                             else if (nextVrNutBehavior != NutBehavior.Continue && nextHrNutBehavior != NutBehavior.Continue)
                             {
@@ -382,7 +375,7 @@ namespace Pong
                                 }
                                 CalculateScore(nextHrNut);
                                 CalculateScore(nextVrNut);
-                                _ballDirection = Direction.NW;
+                                _ballDir = Direction.NW;
                             }
                             else if (nextVrNutBehavior != NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
                             {
@@ -392,12 +385,12 @@ namespace Pong
                                     return;
                                 }
                                 CalculateScore(nextVrNut);
-                                _ballDirection = Direction.NE;
+                                _ballDir = Direction.NE;
                             }
                             else if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior != NutBehavior.Continue)
                             {
                                 CalculateScore(nextHrNut);
-                                _ballDirection = Direction.SW;
+                                _ballDir = Direction.SW;
                             }
                         }
                         break;
@@ -431,7 +424,7 @@ namespace Pong
                             {
                                 _movementStep = 2;
                                 CalculateScore(nextNut);
-                                _ballDirection = Direction.NE;
+                                _ballDir = Direction.NE;
                             }
                             else if (nextVrNutBehavior != NutBehavior.Continue && nextHrNutBehavior != NutBehavior.Continue)
                             {
@@ -442,7 +435,7 @@ namespace Pong
                                 }
                                 CalculateScore(nextHrNut);
                                 CalculateScore(nextVrNut);
-                                _ballDirection = Direction.NE;
+                                _ballDir = Direction.NE;
                             }
                             else if (nextVrNutBehavior != NutBehavior.Continue && nextHrNutBehavior == NutBehavior.Continue)
                             {
@@ -452,12 +445,12 @@ namespace Pong
                                     return;
                                 }
                                 CalculateScore(nextVrNut);
-                                _ballDirection = Direction.NW;
+                                _ballDir = Direction.NW;
                             }
                             else if (nextVrNutBehavior == NutBehavior.Continue && nextHrNutBehavior != NutBehavior.Continue)
                             {
                                 CalculateScore(nextHrNut);
-                                _ballDirection = Direction.SE;
+                                _ballDir = Direction.SE;
                             }
                         }
                         break;
@@ -481,7 +474,7 @@ namespace Pong
 
                     #region Big
 
-                    Log("Paddle Growed ...");
+                    Log("Paddle Growed");
                     if (_currentPaddleFrag < _game.Cols - 2)
                     {
                         var newNut = new Nut();
@@ -506,7 +499,7 @@ namespace Pong
 
                     #region Small
 
-                    Log("Paddle Shrinked ...");
+                    Log("Paddle Shrinked");
                     if (--_currentPaddleFrag <= 0)
                     {
                         _hearts = 0;
@@ -522,7 +515,7 @@ namespace Pong
 
                     #region Live
 
-                    Log("Live Increased ...");
+                    Log("Live Increased");
                     _hearts++;
                     break;
 
@@ -532,7 +525,7 @@ namespace Pong
 
                     #region Death
 
-                    Log("Live Decreased ...");
+                    Log("Live Decreased");
                     if (--_hearts < 0) LoseHeart();
                     break;
 
@@ -542,7 +535,7 @@ namespace Pong
 
                     #region Stick
 
-                    Log("Sticky Ball ...");
+                    Log("Sticky Ball");
                     _ballStick = true;
                     break;
 
@@ -552,9 +545,8 @@ namespace Pong
 
                     #region Speed Up
 
-                    Log("Speed Increased ...");
-                    _game.Speed += 1;
-                    _ballTimer.Interval = 200 / _game.Speed;
+                    Log("Speed Increased");
+                    _ballTimer.Interval = 200 / ++_speed;
                     break;
 
                 #endregion
@@ -562,10 +554,11 @@ namespace Pong
                 case FoodType.Slower:
 
                     #region Speed Down
-
-                    Log("Speed Decreased ...");
-                    _game.Speed -= 1;
-                    _ballTimer.Interval = 200 / _game.Speed;
+                    if (_speed > 0)
+                    {
+                        Log("Speed Decreased");
+                        _ballTimer.Interval = 200 / _speed--;
+                    }
                     break;
 
                     #endregion
@@ -575,7 +568,7 @@ namespace Pong
         private void StickBallToPaddle()
         {
             _ballStart = false;
-            _ballDirection = Direction.N;
+            _ballDir = Direction.N;
             _ball.Index = _currentPaddleFrag / 2;
         }
 
@@ -609,7 +602,7 @@ namespace Pong
         {
             _gameStart = _ballStart = false;
             _roundLose = true;
-            _ballDirection = Direction.N;
+            _ballDir = Direction.N;
             if (_hearts-- > 0)
             {
                 #region Lose Heart
@@ -623,7 +616,7 @@ namespace Pong
                 #region Game Over
                 MessageBox.Show("Game Over", "Pong", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 if (MessageBox.Show("Do you want to restart game ?", "Pong", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                    InitializeGame(_gameLevel);
+                    InitializeGame(_game.Level);
                 #endregion
             }
         }
@@ -649,7 +642,7 @@ namespace Pong
 
         private void RealignPaddle()
         {
-            _ball.Location = new Point((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
+            _ball.Location = new Point((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * _game.NutsToPanelRatio - 1) * _game.NutWidth);
             _ball.Index = _currentPaddleFrag / 2;
             var paddleStartPosition = _ball.Left - _currentPaddleFrag / 2 * _game.NutWidth;
             foreach (var padd in _paddle)
@@ -664,15 +657,15 @@ namespace Pong
             if (e.KeyCode == Keys.Left) _moveLeft = false;
             if (e.KeyCode == Keys.Right) _moveRight = false;
             if (_moveLeft || _moveRight) return;
-            _previousKey = Keys.None;
+            Tag = Keys.None;
             _movementTimer.Stop();
         }
 
         private void Main_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyData == _previousKey) return;
-            _previousKey = e.KeyData;
-            switch (_previousKey)
+            if (Tag != null && e.KeyData == (Keys)Tag) return;
+            Tag = e.KeyData;
+            switch (e.KeyData)
             {
                 case Keys.Escape:
 
@@ -723,7 +716,7 @@ namespace Pong
 
         private void newGameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            InitializeGame(_gameLevel);
+            InitializeGame(_game.Level);
         }
 
         private void changeLevelToolStripMenuItem_Click(object sender, EventArgs e)
@@ -731,7 +724,7 @@ namespace Pong
             switch (((ToolStripMenuItem)sender).Text)
             {
                 case "Beginner":
-                    InitializeGame(GameLevel.Beginner);
+                    InitializeGame();
                     break;
                 case "Intermediate":
                     InitializeGame(GameLevel.Intermediate);
