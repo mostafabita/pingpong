@@ -22,7 +22,6 @@ namespace Pong
         private short _scoreStep;
         private short _movementStep;
         private short _hearts;
-        private short _ballTop;
         private bool _gameStart;
         private bool _ballStart;
         private bool _ballStick;
@@ -69,7 +68,6 @@ namespace Pong
             _movementStep = MovementStep;
             _scoreStep = (short)(ScoreStep + (short)gameLevel);
             _hearts = Hearts;
-            _ballTop = (short)((_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth);
             _currentPaddleFrag = PaddleFragments;
             _controls = _gamePanel.Controls;
             _ballTimer?.Stop();
@@ -117,7 +115,7 @@ namespace Pong
 
             #region Ball
 
-            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, _ballTop, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
+            _ball = new Nut((_game.Cols / 2 + 1) * _game.NutWidth, (_game.Rows * NutsToPanelRatio - 1) * _game.NutWidth, _game.NutWidth, NutType.Ball, FoodType.Null, _currentPaddleFrag / 2);
             _controls.Add(_ball);
 
             #endregion
@@ -591,7 +589,7 @@ namespace Pong
                 if (_paddle[0].Left > _game.NutWidth)
                 {
                     foreach (var padd in _paddle) padd.Left -= _game.NutWidth;
-                    if (!_ballStart && _ball.Top == _ballTop) _ball.Left -= _game.NutWidth;
+                    if (!_ballStart) _ball.Left -= _game.NutWidth;
                 }
                 #endregion
             }
@@ -601,7 +599,7 @@ namespace Pong
                 if (_paddle[_currentPaddleFrag - 1].Left + _game.NutWidth * 2 < (_game.Cols + 2) * _game.NutWidth)
                 {
                     foreach (var padd in _paddle) padd.Left += _game.NutWidth;
-                    if (!_ballStart && _ball.Top == _ballTop) _ball.Left += _game.NutWidth;
+                    if (!_ballStart) _ball.Left += _game.NutWidth;
                 }
                 #endregion
             }
