@@ -24,11 +24,12 @@ namespace Pong
         private int Hearts { get; set; }
         private int PaddleFragments { get; set; }
 
-        private int _foodNumber;
+        private readonly Dictionary<GameLevel, Action> _levelInitFuncDic;
         private const int NutsToPanelRatio = 4;
         private const int SkewMovementTilt = 1;
         private const int ScoreStep = 4;
         private const int Gap = 3;
+        private int _foodNumber;
         private int _paddleFragments;
         private int _speed;
         private int _score;
@@ -41,6 +42,7 @@ namespace Pong
         private bool _roundLose;
         private bool _moveLeft;
         private bool _moveRight;
+        private Form _mainForm;
         private Panel _gamePanel;
         private Timer _ballTimer;
         private Timer _movementTimer;
@@ -49,23 +51,18 @@ namespace Pong
         private List<Control> _nuts;
         private Nut _ball;
         private Direction _ballDirection;
-        private Form _mainForm;
+        
 
-        public Game(GameLevel level)
+        public Game(GameLevel level = GameLevel.Beginner)
         {
-            var levelInitFuncDic = new Dictionary<GameLevel, Action>
+            _levelInitFuncDic = new Dictionary<GameLevel, Action>
             {
                 {GameLevel.Beginner, () => Initialize(GameLevel.Beginner, 5, 17, 20, 2, Quantity.VeryMuch, 5, 5)},
                 {GameLevel.Intermediate, () => Initialize(GameLevel.Intermediate, 7, 25, 15, 4, Quantity.Normal, 4, 5)},
                 {GameLevel.Advanced, () => Initialize(GameLevel.Advanced, 7, 30, 15, 6, Quantity.Few, 3, 5)}
             };
 
-            levelInitFuncDic[level]();
-        }
-
-        public Game(int row, int cols, int nutWidth, int speed, Quantity foods, int hearts, int paddleFrags)
-        {
-            Initialize(GameLevel.Custom, row, cols, nutWidth, speed, foods, hearts, paddleFrags);
+            _levelInitFuncDic[level]();
         }
 
         private void Initialize(GameLevel level, int row, int cols, int nutWidth, int speed, Quantity foods, int hearts, int paddleFrags)
@@ -171,6 +168,12 @@ namespace Pong
                 _paddle.Add(new Nut(j, Rows * NutsToPanelRatio * NutWidth, NutWidth, NutType.Paddle, FoodType.Null, i));
             _controls.AddRange(_paddle.ToArray());
             #endregion
+        }
+
+        public void Create(Form form, GameLevel level)
+        {
+            _levelInitFuncDic[level]();
+            Create(form);
         }
 
         private void Nut_FoodHit(object sender)

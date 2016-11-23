@@ -5,25 +5,17 @@ namespace Pong
 {
     public partial class Main : Form
     {
-        private GameLevel _gameLevel;
-        private Game _game;
-        
+        private readonly Game _game = new Game();
+
         public Main()
         {
             InitializeComponent();
-            InitializeGame(_gameLevel);
-        }
-
-        public void InitializeGame(GameLevel gameLevel = GameLevel.Beginner)
-        {
-            _gameLevel = gameLevel;
-            _game = new Game(_gameLevel);
             _game.Create(this);
         }
 
         private void newGameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            InitializeGame(_gameLevel);
+            _game.Create(this);
         }
 
         private void changeLevelToolStripMenuItem_Click(object sender, EventArgs e)
@@ -31,13 +23,13 @@ namespace Pong
             switch (((ToolStripMenuItem)sender).Text)
             {
                 case "Beginner":
-                    InitializeGame(GameLevel.Beginner);
+                    _game.Create(this, GameLevel.Beginner);
                     break;
                 case "Intermediate":
-                    InitializeGame(GameLevel.Intermediate);
+                    _game.Create(this, GameLevel.Intermediate);
                     break;
                 case "Advanced":
-                    InitializeGame(GameLevel.Advanced);
+                    _game.Create(this, GameLevel.Advanced);
                     break;
             }
         }
