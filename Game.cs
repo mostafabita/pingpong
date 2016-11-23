@@ -51,7 +51,6 @@ namespace Pong
         private List<Control> _nuts;
         private Nut _ball;
         private Direction _ballDirection;
-        
 
         public Game(GameLevel level = GameLevel.Beginner)
         {
@@ -175,7 +174,7 @@ namespace Pong
             _levelInitFuncDic[level]();
             Create(form);
         }
-
+        
         private void Nut_FoodHit(object sender)
         {
             var foodHitTimer = new Timer { Interval = 300, Tag = sender, Enabled = true };
@@ -237,7 +236,6 @@ namespace Pong
                             _ball.Top -= NutWidth;
                         else
                         {
-//                            _mainForm.Controls.Find("gamePanel", false);
                             CalculateScore(nextNut);
                             _ballDirection = Direction.S;
                         }
